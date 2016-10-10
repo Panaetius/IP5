@@ -39,30 +39,30 @@ import tarfile
 from six.moves import urllib
 import tensorflow as tf
 
-import cifar10_input
+import ip5wke_input
 
 FLAGS = tf.app.flags.FLAGS
 
 # Basic model parameters.
-tf.app.flags.DEFINE_integer('batch_size', 10,
+tf.app.flags.DEFINE_integer('batch_size', 128,
                             """Number of images to process in a batch.""")
-tf.app.flags.DEFINE_string('data_dir','/media/windows/DEV/IP5/Code/IP5/prepared_images',# '/tmp/cifar10_data',
+tf.app.flags.DEFINE_string('data_dir','/media/windows/DEV/IP5/images/train',# '/tmp/ip5wke_data',
                            """Path to the CIFAR-10 data directory.""")
 tf.app.flags.DEFINE_boolean('use_fp16', False,
                             """Train the model using fp16.""")
 
 # Global constants describing the CIFAR-10 data set.
-IMAGE_SIZE = cifar10_input.IMAGE_SIZE
-NUM_CLASSES = cifar10_input.NUM_CLASSES
-NUM_EXAMPLES_PER_EPOCH_FOR_TRAIN = cifar10_input.NUM_EXAMPLES_PER_EPOCH_FOR_TRAIN
-NUM_EXAMPLES_PER_EPOCH_FOR_EVAL = cifar10_input.NUM_EXAMPLES_PER_EPOCH_FOR_EVAL
+IMAGE_SIZE = ip5wke_input.IMAGE_SIZE
+NUM_CLASSES = ip5wke_input.NUM_CLASSES
+NUM_EXAMPLES_PER_EPOCH_FOR_TRAIN = ip5wke_input.NUM_EXAMPLES_PER_EPOCH_FOR_TRAIN
+NUM_EXAMPLES_PER_EPOCH_FOR_EVAL = ip5wke_input.NUM_EXAMPLES_PER_EPOCH_FOR_EVAL
 
 
 # Constants describing the training process.
 MOVING_AVERAGE_DECAY = 0.9999     # The decay to use for the moving average.
-NUM_EPOCHS_PER_DECAY = 350.0      # Epochs after which learning rate decays.
-LEARNING_RATE_DECAY_FACTOR = 0.1  # Learning rate decay factor.
-INITIAL_LEARNING_RATE = 0.01       # Initial learning rate.
+NUM_EPOCHS_PER_DECAY = 30.0      # Epochs after which learning rate decays.
+LEARNING_RATE_DECAY_FACTOR = 0.01  # Learning rate decay factor.
+INITIAL_LEARNING_RATE = 0.001       # Initial learning rate.
 
 # If a model is trained with multiple GPUs, prefix all Op names with tower_name
 # to differentiate the operations. Note that this prefix is removed from the
@@ -138,7 +138,7 @@ def distorted_inputs():
   if not FLAGS.data_dir:
     raise ValueError('Please supply a data_dir')
   data_dir = FLAGS.data_dir #os.path.join(FLAGS.data_dir, 'cifar-10-batches-bin')
-  images, labels = cifar10_input.distorted_inputs(data_dir=data_dir,
+  images, labels = ip5wke_input.distorted_inputs(data_dir=data_dir,
                                                   batch_size=FLAGS.batch_size)
   if FLAGS.use_fp16:
     images = tf.cast(images, tf.float16)
@@ -159,7 +159,7 @@ def inputs(eval_data):
   if not FLAGS.data_dir:
     raise ValueError('Please supply a data_dir')
   data_dir = FLAGS.data_dir#os.path.join(FLAGS.data_dir, 'cifar-10-batches-bin')
-  images, labels = cifar10_input.inputs(eval_data=eval_data,
+  images, labels = ip5wke_input.inputs(eval_data=eval_data,
                                         data_dir=data_dir,
                                         batch_size=FLAGS.batch_size)
   if FLAGS.use_fp16:
@@ -183,14 +183,25 @@ def inference(images):
   # conv1
   with tf.variable_scope('conv1') as scope:
     kernel = _variable_with_weight_decay('weights',
-                                         shape=[5, 5, 3, 64],
+                                         shape=[11, 11, 3, 32],
                                          stddev=5e-2,
                                          wd=0.0)
-    conv = tf.nn.conv2d(images, kernel, [1, 1, 1, 1], padding='SAME')
-    biases = _variable_on_cpu('biases', [64], tf.constant_initializer(0.0))
+    conv = tf.nn.conv2d(images, kernel, [1, 4, 4, 1], padding='SAME')
+    biases = _variable_on_cpu('biases', [32], tf.constant_initializer(0.0))
     bias = tf.nn.bias_add(conv, biases)
     conv1 = tf.nn.relu(bias, name=scope.name)
     _activation_summary(conv1)
+
+  with tf.variable_scope('conv3') as scope:
+    kernel = _variable_with_weight_decay('weights',
+                                         shape=[11, 11, 3, 32],
+                                         stddev=5e-2,
+                                         wd=0.0)
+    conv = tf.nn.conv2d(images, kernel, [1, 4, 4, 1], padding='SAME')
+    biases = _variable_on_cpu('biases', [32], tf.constant_initializer(0.0))
+    bias = tf.nn.bias_add(conv, biases)
+    conv3 = tf.nn.relu(bias, name=scope.name)
+    _activation_summary(conv3)
 
   # pool1
   pool1 = tf.nn.max_pool(conv1, ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1],
@@ -198,11 +209,16 @@ def inference(images):
   # norm1
   norm1 = tf.nn.lrn(pool1, 4, bias=1.0, alpha=0.001 / 9.0, beta=0.75,
                     name='norm1')
-
+  # pool3
+  pool3 = tf.nn.max_pool(conv3, ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1],
+                         padding='SAME', name='pool1')
+  # norm1
+  norm3 = tf.nn.lrn(pool3, 4, bias=1.0, alpha=0.001 / 9.0, beta=0.75,
+                    name='norm1')
   # conv2
   with tf.variable_scope('conv2') as scope:
     kernel = _variable_with_weight_decay('weights',
-                                         shape=[5, 5, 64, 64],
+                                         shape=[5, 5, 32, 64],
                                          stddev=5e-2,
                                          wd=0.0)
     conv = tf.nn.conv2d(norm1, kernel, [1, 1, 1, 1], padding='SAME')
@@ -211,27 +227,45 @@ def inference(images):
     conv2 = tf.nn.relu(bias, name=scope.name)
     _activation_summary(conv2)
 
+  with tf.variable_scope('conv4') as scope:
+    kernel = _variable_with_weight_decay('weights',
+                                         shape=[5, 5, 32, 64],
+                                         stddev=5e-2,
+                                         wd=0.0)
+    conv = tf.nn.conv2d(norm3, kernel, [1, 1, 1, 1], padding='SAME')
+    biases = _variable_on_cpu('biases', [64], tf.constant_initializer(0.1))
+    bias = tf.nn.bias_add(conv, biases)
+    conv4 = tf.nn.relu(bias, name=scope.name)
+    _activation_summary(conv4)
+
   # norm2
   norm2 = tf.nn.lrn(conv2, 4, bias=1.0, alpha=0.001 / 9.0, beta=0.75,
                     name='norm2')
   # pool2
   pool2 = tf.nn.max_pool(norm2, ksize=[1, 3, 3, 1],
                          strides=[1, 2, 2, 1], padding='SAME', name='pool2')
+  # norm2
+  norm4 = tf.nn.lrn(conv4, 4, bias=1.0, alpha=0.001 / 9.0, beta=0.75,
+                    name='norm2')
+  # pool2
+  pool4 = tf.nn.max_pool(norm4, ksize=[1, 3, 3, 1],
+                         strides=[1, 2, 2, 1], padding='SAME', name='pool2')
 
+  net = tf.concat(3,[pool2,pool4])
   # local3
   with tf.variable_scope('local3') as scope:
     # Move everything into depth so we can perform a single matrix multiply.
-    reshape = tf.reshape(pool2, [FLAGS.batch_size, -1])
+    reshape = tf.reshape(net, [FLAGS.batch_size, -1])
     dim = reshape.get_shape()[1].value
-    weights = _variable_with_weight_decay('weights', shape=[dim, 384],
+    weights = _variable_with_weight_decay('weights', shape=[dim, 768],
                                           stddev=0.04, wd=0.004)
-    biases = _variable_on_cpu('biases', [384], tf.constant_initializer(0.1))
+    biases = _variable_on_cpu('biases', [768], tf.constant_initializer(0.1))
     local3 = tf.nn.relu(tf.matmul(reshape, weights) + biases, name=scope.name)
     _activation_summary(local3)
 
   # local4
   with tf.variable_scope('local4') as scope:
-    weights = _variable_with_weight_decay('weights', shape=[384, 192],
+    weights = _variable_with_weight_decay('weights', shape=[768, 192],
                                           stddev=0.04, wd=0.004)
     biases = _variable_on_cpu('biases', [192], tf.constant_initializer(0.1))
     local4 = tf.nn.relu(tf.matmul(local3, weights) + biases, name=scope.name)
@@ -261,6 +295,21 @@ def loss(logits, labels):
   """
   # Calculate the average cross entropy loss across the batch.
   labels = tf.cast(labels, tf.int64)
+
+  correct_prediction = tf.equal(tf.argmax(logits, 1), labels)
+  accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+  tf.add_to_collection('accuracies', accuracy)
+
+  curr_conf_matrix = tf.contrib.metrics.confusion_matrix(tf.argmax(logits, 1), labels, num_classes=NUM_CLASSES)
+  conf_matrix = tf.get_variable('conf_matrix', dtype=tf.int32, initializer=tf.zeros([NUM_CLASSES, NUM_CLASSES], tf.int32), trainable=False)
+
+  conf_matrix = conf_matrix.assign_add(curr_conf_matrix)
+
+  #conf_matrix = tf.Print(conf_matrix, [conf_matrix], "conf_matrix: ", summarize=100)
+
+  tf.image_summary('Confusion Matrix',
+                   tf.reshape(tf.clip_by_norm(tf.cast(conf_matrix, tf.float32), 1), [1, NUM_CLASSES, NUM_CLASSES, 1]))
+
   #labels = tf.Print(labels, [labels], "labels: ", summarize=100)
   #logits = tf.Print(logits, [logits], "logits: ", summarize=100)
   cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(
@@ -287,6 +336,10 @@ def _add_loss_summaries(total_loss):
   loss_averages = tf.train.ExponentialMovingAverage(0.9, name='avg')
   losses = tf.get_collection('losses')
   loss_averages_op = loss_averages.apply(losses + [total_loss])
+
+  accuracies = tf.get_collection('accuracies')
+  for a in accuracies:
+      tf.scalar_summary('accuracy', a)
 
   # Attach a scalar summary to all individual losses and the total loss; do the
   # same for the averaged version of the losses.

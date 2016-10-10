@@ -16,8 +16,8 @@
 """A binary to train CIFAR-10 using a single GPU.
 
 Accuracy:
-cifar10_train.py achieves ~86% accuracy after 100K steps (256 epochs of
-data) as judged by cifar10_eval.py.
+ip5wke_train.py achieves ~86% accuracy after 100K steps (256 epochs of
+data) as judged by ip5wke_eval.py.
 
 Speed: With batch_size 128.
 
@@ -44,12 +44,12 @@ import numpy as np
 from six.moves import xrange  # pylint: disable=redefined-builtin
 import tensorflow as tf
 
-#from tensorflow.models.image.cifar10 import cifar10
-import cifar10
+#from tensorflow.models.image.ip5wke import ip5wke
+import ip5wke
 
 FLAGS = tf.app.flags.FLAGS
 
-tf.app.flags.DEFINE_string('train_dir', '/tmp/cifar10_train',
+tf.app.flags.DEFINE_string('train_dir', '/tmp/ip5wke_train',
                            """Directory where to write event logs """
                            """and checkpoint.""")
 tf.app.flags.DEFINE_integer('max_steps', 10000,
@@ -63,19 +63,21 @@ def train():
   with tf.Graph().as_default():
     global_step = tf.Variable(0, trainable=False)
 
+    conf_matrix = tf.Variable(tf.zeros([ip5wke.NUM_CLASSES, ip5wke.NUM_CLASSES], tf.int32), name='conf_matrix', trainable=False)
+
     # Get images and labels for CIFAR-10.
-    images, labels = cifar10.distorted_inputs()
+    images, labels = ip5wke.distorted_inputs()
 
     # Build a Graph that computes the logits predictions from the
     # inference model.
-    logits = cifar10.inference(images)
+    logits = ip5wke.inference(images)
 
     # Calculate loss.
-    loss = cifar10.loss(logits, labels)
+    loss = ip5wke.loss(logits, labels)
 
     # Build a Graph that trains the model with one batch of examples and
     # updates the model parameters.
-    train_op = cifar10.train(loss, global_step)
+    train_op = ip5wke.train(loss, global_step)
 
     # Create a saver.
     saver = tf.train.Saver(tf.all_variables())
@@ -107,10 +109,14 @@ def train():
         num_examples_per_step = FLAGS.batch_size
         examples_per_sec = num_examples_per_step / duration
         sec_per_batch = float(duration)
+        correct_prediction = tf.equal(tf.argmax(logits,1), tf.cast(labels, tf.int64))
+        accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+        train_acc = sess.run(accuracy)
+        tf.scalar_summary('accuracy', accuracy)
 
-        format_str = ('%s: step %d, loss = %.2f (%.1f examples/sec; %.3f '
+        format_str = ('%s: step %d, loss = %.2f, accuracy = %.2f (%.1f examples/sec; %.3f '
                       'sec/batch)')
-        print (format_str % (datetime.now(), step, loss_value,
+        print (format_str % (datetime.now(), step, loss_value, train_acc,
                              examples_per_sec, sec_per_batch))
 
       if step % 25 == 0:
@@ -124,7 +130,7 @@ def train():
 
 
 def main(argv=None):  # pylint: disable=unused-argument
-  #cifar10.maybe_download_and_extract()
+  #ip5wke.maybe_download_and_extract()
   if tf.gfile.Exists(FLAGS.train_dir):
     tf.gfile.DeleteRecursively(FLAGS.train_dir)
   tf.gfile.MakeDirs(FLAGS.train_dir)

@@ -21,3 +21,6 @@ node_modules
 *.pyc
 __pycache__
 *.swp
+/images/train
+/images/test
+/images/validation
