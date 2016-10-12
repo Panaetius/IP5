@@ -36,41 +36,52 @@ def get_white_noise_image(width, height):
     #pil_map.putdata(random_grid)
     return Image.fromarray(random_grid.astype('uint8'), 'RGB')
 
-for root, dirs, files in os.walk('./train'):
-    for fn in files:
-        if fn.endswith(".PNG"):
-            fn = os.path.join(root, fn)
-            size = (250,250)
-            image = Image.open(fn)
-            #image = trim(image)
-            average_color = average_image_color(image)
+def create_rotated_images(dir):
+    count = 0
+    for root, dirs, files in os.walk(dir):
+        for fn in files:
+            if fn.endswith(".PNG"):
 
-            for i in range(1,23):
-                angle = 15 * i
+                fn = os.path.join(root, fn)
+                size = (250,250)
+                image = Image.open(fn)
+                #image = trim(image)
+                average_color = average_image_color(image)
 
-                dst_im = get_white_noise_image(size[0], size[1]).convert('RGBA')
-                im = image.convert('RGBA')
-                rot = im.rotate(angle, resample=Image.BICUBIC, expand=1)
+                for i in range(1,23):
+                    angle = 15 * i
+                    count += 1
 
-                width, height = rot.size  # Get dimensions
+                    dst_im = get_white_noise_image(size[0], size[1]).convert('RGBA')
+                    im = image.convert('RGBA')
+                    rot = im.rotate(angle, resample=Image.BICUBIC, expand=1)
 
-                left = 0
-                right = width
-                top = 0
-                bottom = height
+                    width, height = rot.size  # Get dimensions
 
-                if width > size[0]:
-                    left = (width - size[0]) / 2
-                    right = (width + size[0]) / 2
-                if height > size[1]:
-                    top = (height - size[1]) / 2
-                    bottom = (height + size[1]) / 2
+                    left = 0
+                    right = width
+                    top = 0
+                    bottom = height
 
-                rot = rot.crop((left, top, right, bottom))
-                width, height = rot.size
-                tmp_im = Image.new("RGBA", size)
+                    if width > size[0]:
+                        left = (width - size[0]) / 2
+                        right = (width + size[0]) / 2
+                    if height > size[1]:
+                        top = (height - size[1]) / 2
+                        bottom = (height + size[1]) / 2
 
-                tmp_im.paste(rot,(int((size[0]-width)/2),int((size[1]-height)/2),int(width + (size[0]-width)/2),int(height + (size[1]-height)/2)))
+                    rot = rot.crop((left, top, right, bottom))
+                    width, height = rot.size
+                    tmp_im = Image.new("RGBA", size)
 
-                dst_im = Image.composite(tmp_im, dst_im, tmp_im).convert('RGB')
-                dst_im.save(fn.replace(".PNG","_")+str(i)+".PNG", 'PNG', quality=95)
+                    tmp_im.paste(rot,(int((size[0]-width)/2),int((size[1]-height)/2),int(width + (size[0]-width)/2),int(height + (size[1]-height)/2)))
+
+                    dst_im = Image.composite(tmp_im, dst_im, tmp_im).convert('RGB')
+                    dst_im.save(fn.replace(".PNG","_")+str(i)+".PNG", 'PNG', quality=95)
+
+                    end=""
+
+                    if count%100 == 0:
+                        end = "\n"
+                    print('.', end=end, flush=True)
+    print('.', end="\n", flush=True)

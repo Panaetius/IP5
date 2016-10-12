@@ -13,7 +13,7 @@
 # limitations under the License.
 # ==============================================================================
 
-"""Evaluation for CIFAR-10.
+"""Evaluation for ip5wke.
 
 Accuracy:
 ip5wke_train.py achieves 83.0% accuracy after 100K steps (256 epochs
@@ -25,7 +25,7 @@ in 0.25-0.35 sec (i.e. 350 - 600 images /sec). The model reaches ~86%
 accuracy after 100K steps in 8 hours of training time.
 
 Usage:
-Please see the tutorial and website for how to download the CIFAR-10
+Please see the tutorial and website for how to download the ip5wke
 data set, compile the program and train the model.
 
 http://tensorflow.org/tutorials/deep_cnn/
@@ -47,19 +47,19 @@ FLAGS = tf.app.flags.FLAGS
 
 tf.app.flags.DEFINE_string('eval_dir', '/tmp/ip5wke_eval',
                            """Directory where to write event logs.""")
-tf.app.flags.DEFINE_string('eval_data', 'test',
-                           """Either 'test' or 'train_eval'.""")
+tf.app.flags.DEFINE_string('eval_data', 'validation',
+                           """Either 'test' or 'validation'.""")
 tf.app.flags.DEFINE_string('checkpoint_dir', '/tmp/ip5wke_train',
                            """Directory where to read model checkpoints.""")
-tf.app.flags.DEFINE_integer('eval_interval_secs', 5,
+tf.app.flags.DEFINE_integer('eval_interval_secs', 600,
                             """How often to run the eval.""")
-tf.app.flags.DEFINE_integer('num_examples', 10000,
+tf.app.flags.DEFINE_integer('num_examples', 4000,
                             """Number of examples to run.""")
 tf.app.flags.DEFINE_boolean('run_once', False,
                          """Whether to run eval only once.""")
 
 
-def eval_once(saver, summary_writer, top_k_op, summary_op):
+def eval_once(saver, summary_writer, top_k_op, conf_matrix_op, num_classes, summary_op):
   """Run Eval once.
 
   Args:
@@ -68,7 +68,10 @@ def eval_once(saver, summary_writer, top_k_op, summary_op):
     top_k_op: Top K op.
     summary_op: Summary op.
   """
-  with tf.Session() as sess:
+  config = tf.ConfigProto(
+      device_count={'GPU': 0}
+  )
+  with tf.Session(config=config) as sess:
     ckpt = tf.train.get_checkpoint_state(FLAGS.checkpoint_dir)
     if ckpt and ckpt.model_checkpoint_path:
       # Restores from checkpoint
@@ -93,14 +96,30 @@ def eval_once(saver, summary_writer, top_k_op, summary_op):
       true_count = 0  # Counts the number of correct predictions.
       total_sample_count = num_iter * FLAGS.batch_size
       step = 0
+      precisions = np.zeros(shape=(num_classes))
+      recalls = np.zeros(shape=(num_classes))
+      tp = np.zeros(shape=(num_classes))
+
       while step < num_iter and not coord.should_stop():
-        predictions = sess.run([top_k_op])
+        predictions, conf_matrix = sess.run([top_k_op, conf_matrix_op])
         true_count += np.sum(predictions)
+        precisions += conf_matrix.sum(axis=0)
+        recalls += conf_matrix.sum(axis=1)
+        tp += np.diagonal(conf_matrix)
+
         step += 1
 
       # Compute precision @ 1.
       precision = true_count / total_sample_count
       print('%s: precision @ 1 = %.3f' % (datetime.now(), precision))
+
+      precs = np.divide(tp, precisions)
+      recs = np.divide(tp, recalls)
+      f1_scores = np.multiply(2.0, np.divide(np.multiply(precs, recs), np.add(precs, recs)))
+
+      print('precisions: ' + str(precs))
+      print('recalls: ' + str(recs))
+      print('f1: ' + str(f1_scores))
 
       summary = tf.Summary()
       summary.ParseFromString(sess.run(summary_op))
@@ -114,9 +133,9 @@ def eval_once(saver, summary_writer, top_k_op, summary_op):
 
 
 def evaluate():
-  """Eval CIFAR-10 for a number of steps."""
+  """Eval ip5wke for a number of steps."""
   with tf.Graph().as_default() as g:
-    # Get images and labels for CIFAR-10.
+    # Get images and labels for ip5wke.
     eval_data = FLAGS.eval_data == 'test'
     images, labels = ip5wke.inputs(eval_data=eval_data)
 
@@ -126,6 +145,7 @@ def evaluate():
 
     # Calculate predictions.
     top_k_op = tf.nn.in_top_k(logits, labels, 1)
+    conf_matrix_op = tf.contrib.metrics.confusion_matrix(tf.argmax(logits, 1), labels, num_classes=ip5wke.NUM_CLASSES)
 
     # Restore the moving average version of the learned variables for eval.
     variable_averages = tf.train.ExponentialMovingAverage(
@@ -139,7 +159,7 @@ def evaluate():
     summary_writer = tf.train.SummaryWriter(FLAGS.eval_dir, g)
 
     while True:
-      eval_once(saver, summary_writer, top_k_op, summary_op)
+      eval_once(saver, summary_writer, top_k_op, conf_matrix_op, ip5wke.NUM_CLASSES, summary_op)
       if FLAGS.run_once:
         break
       time.sleep(FLAGS.eval_interval_secs)

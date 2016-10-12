@@ -13,7 +13,7 @@
 # limitations under the License.
 # ==============================================================================
 
-"""A binary to train CIFAR-10 using a single GPU.
+"""A binary to train ip5wke using a single GPU.
 
 Accuracy:
 ip5wke_train.py achieves ~86% accuracy after 100K steps (256 epochs of
@@ -27,7 +27,7 @@ System        | Step Time (sec/batch)  |     Accuracy
 1 Tesla K40m  | 0.25-0.35              | ~86% at 100K steps (4 hours)
 
 Usage:
-Please see the tutorial and website for how to download the CIFAR-10
+Please see the tutorial and website for how to download the ip5wke
 data set, compile the program and train the model.
 
 http://tensorflow.org/tutorials/deep_cnn/
@@ -52,20 +52,20 @@ FLAGS = tf.app.flags.FLAGS
 tf.app.flags.DEFINE_string('train_dir', '/tmp/ip5wke_train',
                            """Directory where to write event logs """
                            """and checkpoint.""")
-tf.app.flags.DEFINE_integer('max_steps', 10000,
+tf.app.flags.DEFINE_integer('max_steps', 100000,
                             """Number of batches to run.""")
 tf.app.flags.DEFINE_boolean('log_device_placement', False,
                             """Whether to log device placement.""")
 
 
 def train():
-  """Train CIFAR-10 for a number of steps."""
+  """Train ip5wke for a number of steps."""
   with tf.Graph().as_default():
     global_step = tf.Variable(0, trainable=False)
 
-    conf_matrix = tf.Variable(tf.zeros([ip5wke.NUM_CLASSES, ip5wke.NUM_CLASSES], tf.int32), name='conf_matrix', trainable=False)
+    conf_matrix = tf.Variable(tf.zeros([ip5wke.NUM_CLASSES, ip5wke.NUM_CLASSES], tf.float32), name='conf_matrix', trainable=False)
 
-    # Get images and labels for CIFAR-10.
+    # Get images and labels for ip5wke.
     images, labels = ip5wke.distorted_inputs()
 
     # Build a Graph that computes the logits predictions from the

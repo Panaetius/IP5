@@ -13,7 +13,7 @@
 # limitations under the License.
 # ==============================================================================
 
-"""Routine for decoding the CIFAR-10 binary file format."""
+"""Routine for decoding the ip5wke binary file format."""
 
 from __future__ import absolute_import
 from __future__ import division
@@ -24,12 +24,12 @@ import os
 from six.moves import xrange  # pylint: disable=redefined-builtin
 import tensorflow as tf
 
-# Process images of this size. Note that this differs from the original CIFAR
+# Process images of this size. Note that this differs from the original ip5wke
 # image size of 32 x 32. If one alters this number, then the entire model
 # architecture will change and any model would need to be retrained.
-IMAGE_SIZE = 224
+IMAGE_SIZE = 227
 
-# Global constants describing the CIFAR-10 data set.
+# Global constants describing the ip5wke data set.
 NUM_CLASSES = 10
 NUM_EXAMPLES_PER_EPOCH_FOR_TRAIN = 8000
 NUM_EXAMPLES_PER_EPOCH_FOR_EVAL = 10000
@@ -61,13 +61,13 @@ def read_ip5wke(filename_queue, data_dir):
     pass
   result = ip5wkeRecord()
 
-  # Dimensions of the images in the CIFAR-10 dataset.
-  # See http://www.cs.toronto.edu/~kriz/cifar.html for a description of the
+  # Dimensions of the images in the ip5wke dataset.
+  # See http://www.cs.toronto.edu/~kriz/ip5wke.html for a description of the
   # input format.
 
 
   # Read a record, getting filenames from the filename_queue.  No
-  # header or footer in the CIFAR-10 format, so we leave header_bytes
+  # header or footer in the ip5wke format, so we leave header_bytes
   # and footer_bytes at their default of 0.
 
 
@@ -115,7 +115,7 @@ def _generate_image_and_label_batch(image, label, min_queue_examples,
         min_after_dequeue=min_queue_examples)
   else:
     images, label_batch = tf.train.batch(
-        [tf.reshape(image, [224, 224, 3]), label],
+        [tf.reshape(image, [IMAGE_SIZE, IMAGE_SIZE, 3]), label],
         batch_size=batch_size,
         num_threads=num_preprocess_threads,
         capacity=min_queue_examples + 3 * batch_size)
@@ -127,10 +127,10 @@ def _generate_image_and_label_batch(image, label, min_queue_examples,
 
 
 def distorted_inputs(data_dir, batch_size):
-  """Construct distorted input for CIFAR training using the Reader ops.
+  """Construct distorted input for ip5wke training using the Reader ops.
 
   Args:
-    data_dir: Path to the CIFAR-10 data directory.
+    data_dir: Path to the ip5wke data directory.
     batch_size: Number of images per batch.
 
   Returns:
@@ -167,7 +167,7 @@ def distorted_inputs(data_dir, batch_size):
   distorted_image = tf.image.random_brightness(distorted_image,
                                                max_delta=75)
   distorted_image = tf.image.random_contrast(distorted_image,
-                                             lower=0.1, upper=1.9)
+                                             lower=0.2, upper=1.8)
 
   # Subtract off the mean and divide by the variance of the pixels.
   float_image = tf.image.per_image_whitening(distorted_image)
@@ -176,7 +176,7 @@ def distorted_inputs(data_dir, batch_size):
   min_fraction_of_examples_in_queue = 0.4
   min_queue_examples = int(NUM_EXAMPLES_PER_EPOCH_FOR_TRAIN *
                            min_fraction_of_examples_in_queue)
-  print ('Filling queue with %d CIFAR images before starting to train. '
+  print ('Filling queue with %d ip5wke images before starting to train. '
          'This will take a few minutes.' % min_queue_examples)
 
   # Generate a batch of images and labels by building up a queue of examples.
@@ -186,11 +186,11 @@ def distorted_inputs(data_dir, batch_size):
 
 
 def inputs(eval_data, data_dir, batch_size):
-  """Construct input for CIFAR evaluation using the Reader ops.
+  """Construct input for ip5wke evaluation using the Reader ops.
 
   Args:
     eval_data: bool, indicating if one should use the train or eval data set.
-    data_dir: Path to the CIFAR-10 data directory.
+    data_dir: Path to the ip5wke data directory.
     batch_size: Number of images per batch.
 
   Returns:
@@ -198,11 +198,11 @@ def inputs(eval_data, data_dir, batch_size):
     labels: Labels. 1D tensor of [batch_size] size.
   """
   if not eval_data:
-    filenames = [os.path.join(data_dir.replace('train', 'test'), 'files.txt')]#'data_batch_%d.bin' % i)
+    filenames = [os.path.join(data_dir.replace('train', 'validation'), 'files.txt')]#'data_batch_%d.bin' % i)
                  #for i in xrange(1, 6)]
     num_examples_per_epoch = NUM_EXAMPLES_PER_EPOCH_FOR_TRAIN
   else:
-    filenames = [os.path.join(data_dir.replace('train', 'validation'), 'files.txt')]
+    filenames = [os.path.join(data_dir.replace('train', 'test'), 'files.txt')]
     num_examples_per_epoch = NUM_EXAMPLES_PER_EPOCH_FOR_EVAL
 
   for f in filenames:

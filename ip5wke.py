@@ -13,7 +13,7 @@
 # limitations under the License.
 # ==============================================================================
 
-"""Builds the CIFAR-10 network.
+"""Builds the ip5wke network.
 Summary of available functions:
  # Compute input images and labels for training. If you would like to run
  # evaluations, use inputs() instead.
@@ -44,14 +44,14 @@ import ip5wke_input
 FLAGS = tf.app.flags.FLAGS
 
 # Basic model parameters.
-tf.app.flags.DEFINE_integer('batch_size', 128,
+tf.app.flags.DEFINE_integer('batch_size', 64,
                             """Number of images to process in a batch.""")
 tf.app.flags.DEFINE_string('data_dir','/media/windows/DEV/IP5/images/train',# '/tmp/ip5wke_data',
-                           """Path to the CIFAR-10 data directory.""")
+                           """Path to the ip5wke data directory.""")
 tf.app.flags.DEFINE_boolean('use_fp16', False,
                             """Train the model using fp16.""")
 
-# Global constants describing the CIFAR-10 data set.
+# Global constants describing the ip5wke data set.
 IMAGE_SIZE = ip5wke_input.IMAGE_SIZE
 NUM_CLASSES = ip5wke_input.NUM_CLASSES
 NUM_EXAMPLES_PER_EPOCH_FOR_TRAIN = ip5wke_input.NUM_EXAMPLES_PER_EPOCH_FOR_TRAIN
@@ -60,16 +60,16 @@ NUM_EXAMPLES_PER_EPOCH_FOR_EVAL = ip5wke_input.NUM_EXAMPLES_PER_EPOCH_FOR_EVAL
 
 # Constants describing the training process.
 MOVING_AVERAGE_DECAY = 0.9999     # The decay to use for the moving average.
-NUM_EPOCHS_PER_DECAY = 30.0      # Epochs after which learning rate decays.
-LEARNING_RATE_DECAY_FACTOR = 0.01  # Learning rate decay factor.
-INITIAL_LEARNING_RATE = 0.001       # Initial learning rate.
+random_brightness = 80.0      # Epochs after which learning rate decays.
+LEARNING_RATE_DECAY_FACTOR = 0.1  # Learning rate decay factor.
+INITIAL_LEARNING_RATE = 0.003       # Initial learning rate.
 
 # If a model is trained with multiple GPUs, prefix all Op names with tower_name
 # to differentiate the operations. Note that this prefix is removed from the
 # names of the summaries when visualizing a model.
 TOWER_NAME = 'tower'
 
-DATA_URL = 'http://www.cs.toronto.edu/~kriz/cifar-10-binary.tar.gz'
+DATA_URL = 'http://www.cs.toronto.edu/~kriz/ip5wke-binary.tar.gz'
 
 
 def _activation_summary(x):
@@ -128,7 +128,7 @@ def _variable_with_weight_decay(name, shape, stddev, wd):
 
 
 def distorted_inputs():
-  """Construct distorted input for CIFAR training using the Reader ops.
+  """Construct distorted input for ip5wke training using the Reader ops.
   Returns:
     images: Images. 4D tensor of [batch_size, IMAGE_SIZE, IMAGE_SIZE, 3] size.
     labels: Labels. 1D tensor of [batch_size] size.
@@ -137,7 +137,7 @@ def distorted_inputs():
   """
   if not FLAGS.data_dir:
     raise ValueError('Please supply a data_dir')
-  data_dir = FLAGS.data_dir #os.path.join(FLAGS.data_dir, 'cifar-10-batches-bin')
+  data_dir = FLAGS.data_dir #os.path.join(FLAGS.data_dir, 'ip5wke-batches-bin')
   images, labels = ip5wke_input.distorted_inputs(data_dir=data_dir,
                                                   batch_size=FLAGS.batch_size)
   if FLAGS.use_fp16:
@@ -147,7 +147,7 @@ def distorted_inputs():
 
 
 def inputs(eval_data):
-  """Construct input for CIFAR evaluation using the Reader ops.
+  """Construct input for ip5wke evaluation using the Reader ops.
   Args:
     eval_data: bool, indicating if one should use the train or eval data set.
   Returns:
@@ -158,7 +158,7 @@ def inputs(eval_data):
   """
   if not FLAGS.data_dir:
     raise ValueError('Please supply a data_dir')
-  data_dir = FLAGS.data_dir#os.path.join(FLAGS.data_dir, 'cifar-10-batches-bin')
+  data_dir = FLAGS.data_dir#os.path.join(FLAGS.data_dir, 'ip5wke-batches-bin')
   images, labels = ip5wke_input.inputs(eval_data=eval_data,
                                         data_dir=data_dir,
                                         batch_size=FLAGS.batch_size)
@@ -169,7 +169,7 @@ def inputs(eval_data):
 
 
 def inference(images):
-  """Build the CIFAR-10 model.
+  """Build the ip5wke model.
   Args:
     images: Images returned from distorted_inputs() or inputs().
   Returns:
@@ -179,83 +179,96 @@ def inference(images):
   # tf.Variable() in order to share variables across multiple GPU training runs.
   # If we only ran this model on a single GPU, we could simplify this function
   # by replacing all instances of tf.get_variable() with tf.Variable().
-  #
-  # conv1
+
   with tf.variable_scope('conv1') as scope:
     kernel = _variable_with_weight_decay('weights',
-                                         shape=[11, 11, 3, 32],
+                                         shape=[11, 11, 3, 256],
                                          stddev=5e-2,
-                                         wd=0.0)
+                                         wd=0)
     conv = tf.nn.conv2d(images, kernel, [1, 4, 4, 1], padding='SAME')
-    biases = _variable_on_cpu('biases', [32], tf.constant_initializer(0.0))
+    biases = _variable_on_cpu('biases', [256], tf.constant_initializer(0.0))
     bias = tf.nn.bias_add(conv, biases)
     conv1 = tf.nn.relu(bias, name=scope.name)
     _activation_summary(conv1)
+    grid = put_kernels_on_grid(kernel, (16, 16))
+    tf.image_summary('conv1/features', grid, max_images=1)
+
+  # with tf.variable_scope('conv2') as scope:
+  #   kernel = _variable_with_weight_decay('weights',
+  #                                        shape=[11, 11, 3, 96],
+  #                                        stddev=5e-2,
+  #                                        wd=0.0001)
+  #   conv = tf.nn.conv2d(images, kernel, [1, 4, 4, 1], padding='SAME')
+  #   biases = _variable_on_cpu('biases', [96], tf.constant_initializer(0.0))
+  #   bias = tf.nn.bias_add(conv, biases)
+  #   conv2 = tf.nn.relu(bias, name=scope.name)
+  #   _activation_summary(conv2)
+  #   grid = put_kernels_on_grid(kernel, (8, 12))
+  #   tf.image_summary('conv2/features', grid, max_images=1)
+
+  pool1 = tf.nn.max_pool(conv1, ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1],
+                         padding='SAME', name='pool1')
+  norm1 = tf.nn.lrn(pool1, 4, bias=1.0, alpha=0.001 / 9.0, beta=0.75,
+                    name='norm1')
+  # pool2 = tf.nn.max_pool(conv2, ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1],
+  #                        padding='SAME', name='pool1')
+  # norm2 = tf.nn.lrn(pool2, 4, bias=1.0, alpha=0.001 / 9.0, beta=0.75,
+  #                   name='norm1')
+  # net = tf.concat(3, [norm1, norm2])
 
   with tf.variable_scope('conv3') as scope:
     kernel = _variable_with_weight_decay('weights',
-                                         shape=[11, 11, 3, 32],
+                                         shape=[5, 5, 256, 512],
                                          stddev=5e-2,
                                          wd=0.0)
-    conv = tf.nn.conv2d(images, kernel, [1, 4, 4, 1], padding='SAME')
-    biases = _variable_on_cpu('biases', [32], tf.constant_initializer(0.0))
+    conv = tf.nn.conv2d(norm1, kernel, [1, 2, 2, 1], padding='SAME')
+    biases = _variable_on_cpu('biases', [512], tf.constant_initializer(0.1))
     bias = tf.nn.bias_add(conv, biases)
     conv3 = tf.nn.relu(bias, name=scope.name)
     _activation_summary(conv3)
 
-  # pool1
-  pool1 = tf.nn.max_pool(conv1, ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1],
-                         padding='SAME', name='pool1')
-  # norm1
-  norm1 = tf.nn.lrn(pool1, 4, bias=1.0, alpha=0.001 / 9.0, beta=0.75,
-                    name='norm1')
-  # pool3
-  pool3 = tf.nn.max_pool(conv3, ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1],
-                         padding='SAME', name='pool1')
-  # norm1
-  norm3 = tf.nn.lrn(pool3, 4, bias=1.0, alpha=0.001 / 9.0, beta=0.75,
-                    name='norm1')
-  # conv2
-  with tf.variable_scope('conv2') as scope:
-    kernel = _variable_with_weight_decay('weights',
-                                         shape=[5, 5, 32, 64],
-                                         stddev=5e-2,
-                                         wd=0.0)
-    conv = tf.nn.conv2d(norm1, kernel, [1, 1, 1, 1], padding='SAME')
-    biases = _variable_on_cpu('biases', [64], tf.constant_initializer(0.1))
-    bias = tf.nn.bias_add(conv, biases)
-    conv2 = tf.nn.relu(bias, name=scope.name)
-    _activation_summary(conv2)
+  # with tf.variable_scope('conv4') as scope:
+  #   kernel = _variable_with_weight_decay('weights',
+  #                                        shape=[5, 5, 192, 256],
+  #                                        stddev=5e-2,
+  #                                        wd=0.0)
+  #   conv = tf.nn.conv2d(net, kernel, [1, 1, 1, 1], padding='SAME')
+  #   biases = _variable_on_cpu('biases', [256], tf.constant_initializer(0.1))
+  #   bias = tf.nn.bias_add(conv, biases)
+  #   conv4 = tf.nn.relu(bias, name=scope.name)
+  #   _activation_summary(conv4)
 
-  with tf.variable_scope('conv4') as scope:
+  pool3 = tf.nn.max_pool(conv3, ksize=[1, 3, 3, 1],
+                         strides=[1, 2, 2, 1], padding='SAME', name='pool3')
+  norm3 = tf.nn.lrn(pool3, 4, bias=1.0, alpha=0.001 / 9.0, beta=0.75,
+                    name='norm3')
+  # norm4 = tf.nn.lrn(conv4, 4, bias=1.0, alpha=0.001 / 9.0, beta=0.75,
+  #                   name='norm4')
+  # pool4 = tf.nn.max_pool(norm4, ksize=[1, 3, 3, 1],
+  #                        strides=[1, 2, 2, 1], padding='SAME', name='pool4')
+
+  # net = tf.concat(3,[pool3,pool4])
+
+  with tf.variable_scope('conv5') as scope:
     kernel = _variable_with_weight_decay('weights',
-                                         shape=[5, 5, 32, 64],
+                                         shape=[3, 3, 512, 1024],
                                          stddev=5e-2,
                                          wd=0.0)
     conv = tf.nn.conv2d(norm3, kernel, [1, 1, 1, 1], padding='SAME')
-    biases = _variable_on_cpu('biases', [64], tf.constant_initializer(0.1))
+    biases = _variable_on_cpu('biases', [1024], tf.constant_initializer(0.1))
     bias = tf.nn.bias_add(conv, biases)
-    conv4 = tf.nn.relu(bias, name=scope.name)
-    _activation_summary(conv4)
+    conv5 = tf.nn.relu(bias, name=scope.name)
+    _activation_summary(conv5)
 
-  # norm2
-  norm2 = tf.nn.lrn(conv2, 4, bias=1.0, alpha=0.001 / 9.0, beta=0.75,
-                    name='norm2')
-  # pool2
-  pool2 = tf.nn.max_pool(norm2, ksize=[1, 3, 3, 1],
-                         strides=[1, 2, 2, 1], padding='SAME', name='pool2')
-  # norm2
-  norm4 = tf.nn.lrn(conv4, 4, bias=1.0, alpha=0.001 / 9.0, beta=0.75,
-                    name='norm2')
-  # pool2
-  pool4 = tf.nn.max_pool(norm4, ksize=[1, 3, 3, 1],
-                         strides=[1, 2, 2, 1], padding='SAME', name='pool2')
+  pool5 = tf.nn.max_pool(conv5, ksize=[1, 2, 2, 1],
+                         strides=[1, 2, 2, 1], padding='SAME', name='pool5')
+  norm5 = tf.nn.lrn(pool5, 4, bias=1.0, alpha=0.001 / 9.0, beta=0.75,
+                    name='norm5')
 
-  net = tf.concat(3,[pool2,pool4])
   # local3
   with tf.variable_scope('local3') as scope:
     # Move everything into depth so we can perform a single matrix multiply.
-    reshape = tf.reshape(net, [FLAGS.batch_size, -1])
+    reshape = tf.reshape(norm5, [FLAGS.batch_size, -1])
     dim = reshape.get_shape()[1].value
     weights = _variable_with_weight_decay('weights', shape=[dim, 768],
                                           stddev=0.04, wd=0.004)
@@ -300,15 +313,17 @@ def loss(logits, labels):
   accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
   tf.add_to_collection('accuracies', accuracy)
 
-  curr_conf_matrix = tf.contrib.metrics.confusion_matrix(tf.argmax(logits, 1), labels, num_classes=NUM_CLASSES)
-  conf_matrix = tf.get_variable('conf_matrix', dtype=tf.int32, initializer=tf.zeros([NUM_CLASSES, NUM_CLASSES], tf.int32), trainable=False)
+  curr_conf_matrix = tf.cast(tf.contrib.metrics.confusion_matrix(tf.argmax(logits, 1), labels, num_classes=NUM_CLASSES), tf.float32)
+  conf_matrix = tf.get_variable('conf_matrix', dtype=tf.float32, initializer=tf.zeros([NUM_CLASSES, NUM_CLASSES], tf.float32), trainable=False)
+
+  conf_matrix.assign(tf.mul(conf_matrix, 0.97)) #make old values decay so early errors don't distort the confusion matrix
 
   conf_matrix = conf_matrix.assign_add(curr_conf_matrix)
 
   #conf_matrix = tf.Print(conf_matrix, [conf_matrix], "conf_matrix: ", summarize=100)
 
   tf.image_summary('Confusion Matrix',
-                   tf.reshape(tf.clip_by_norm(tf.cast(conf_matrix, tf.float32), 1), [1, NUM_CLASSES, NUM_CLASSES, 1]))
+                   tf.reshape(tf.clip_by_norm(conf_matrix, 1, axes=[1]), [1, NUM_CLASSES, NUM_CLASSES, 1]))
 
   #labels = tf.Print(labels, [labels], "labels: ", summarize=100)
   #logits = tf.Print(logits, [logits], "logits: ", summarize=100)
@@ -324,7 +339,7 @@ def loss(logits, labels):
 
 
 def _add_loss_summaries(total_loss):
-  """Add summaries for losses in CIFAR-10 model.
+  """Add summaries for losses in ip5wke model.
   Generates moving average for all losses and associated summaries for
   visualizing the performance of the network.
   Args:
@@ -353,7 +368,7 @@ def _add_loss_summaries(total_loss):
 
 
 def train(total_loss, global_step):
-  """Train CIFAR-10 model.
+  """Train ip5wke model.
   Create an optimizer and apply to all trainable variables. Add moving
   average for all trainable variables.
   Args:
@@ -423,3 +438,48 @@ def maybe_download_and_extract():
     statinfo = os.stat(filepath)
     print('Successfully downloaded', filename, statinfo.st_size, 'bytes.')
     tarfile.open(filepath, 'r:gz').extractall(dest_directory)
+
+
+def put_kernels_on_grid(kernel, grid, pad=1):
+    '''Visualize conv. features as an image (mostly for the 1st layer).
+    Place kernel into a grid, with some paddings between adjacent filters.
+    Args:
+      kernel:            tensor of shape [Y, X, NumChannels, NumKernels]
+      (grid_Y, grid_X):  shape of the grid. Require: NumKernels == grid_Y * grid_X
+                           User is responsible of how to break into two multiples.
+      pad:               number of black pixels around each filter (between them)
+
+    Return:
+      Tensor of shape [(Y+pad)*grid_Y, (X+pad)*grid_X, NumChannels, 1].
+    '''
+    grid_Y, grid_X = grid
+    # pad X and Y
+    x1 = tf.pad(kernel, tf.constant([[pad, 0], [pad, 0], [0, 0], [0, 0]]))
+
+    # X and Y dimensions, w.r.t. padding
+    Y = kernel.get_shape()[0] + pad
+    X = kernel.get_shape()[1] + pad
+
+    # put NumKernels to the 1st dimension
+    x2 = tf.transpose(x1, (3, 0, 1, 2))
+    # organize grid on Y axis
+    x3 = tf.reshape(x2, tf.pack([grid_X, Y * grid_Y, X, 3]))
+
+    # switch X and Y axes
+    x4 = tf.transpose(x3, (0, 2, 1, 3))
+    # organize grid on X axis
+    x5 = tf.reshape(x4, tf.pack([1, X * grid_X, Y * grid_Y, 3]))
+
+    # back to normal order (not combining with the next step for clarity)
+    x6 = tf.transpose(x5, (2, 1, 3, 0))
+
+    # to tf.image_summary order [batch_size, height, width, channels],
+    #   where in this case batch_size == 1
+    x7 = tf.transpose(x6, (3, 0, 1, 2))
+
+    # scale to [0, 1]
+    x_min = tf.reduce_min(x7)
+    x_max = tf.reduce_max(x7)
+    x8 = (x7 - x_min) / (x_max - x_min)
+
+    return x8
