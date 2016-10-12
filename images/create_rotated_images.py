@@ -4,7 +4,8 @@
 ##################
 from PIL import Image, ImageChops, ImageColor
 import os
-from numpy import random
+import numpy as np
+from skimage.util import random_noise
 
 def average_image_color(i):
 	h = i.histogram()
@@ -32,7 +33,7 @@ def trim(im):
 
 def get_white_noise_image(width, height):
     #pil_map = Image.new("RGBA", (width, height), 255)
-    random_grid = random.randint(0, high=255, size=(width, height, 3))
+    random_grid = np.random.randint(0, high=255, size=(width, height, 3))
     #pil_map.putdata(random_grid)
     return Image.fromarray(random_grid.astype('uint8'), 'RGB')
 
@@ -77,6 +78,10 @@ def create_rotated_images(dir):
                     tmp_im.paste(rot,(int((size[0]-width)/2),int((size[1]-height)/2),int(width + (size[0]-width)/2),int(height + (size[1]-height)/2)))
 
                     dst_im = Image.composite(tmp_im, dst_im, tmp_im).convert('RGB')
+
+                    #add random noise
+                    noise = random_noise(np.asarray(dst_im), mode='gaussian', seed=None, clip=True, var=0.001)
+                    dst_im = Image.fromarray(np.uint8(np.multiply(noise, 255.0)))
                     dst_im.save(fn.replace(".PNG","_")+str(i)+".PNG", 'PNG', quality=95)
 
                     end=""

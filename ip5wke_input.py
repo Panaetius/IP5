@@ -27,7 +27,7 @@ import tensorflow as tf
 # Process images of this size. Note that this differs from the original ip5wke
 # image size of 32 x 32. If one alters this number, then the entire model
 # architecture will change and any model would need to be retrained.
-IMAGE_SIZE = 227
+IMAGE_SIZE = 224
 
 # Global constants describing the ip5wke data set.
 NUM_CLASSES = 10
