@@ -87,10 +87,10 @@ def train():
 
     # Build an initialization operation to run below.
     init = tf.initialize_all_variables()
-
+    config = tf.ConfigProto(log_device_placement=FLAGS.log_device_placement)
+    config.gpu_options.allow_growth = True
     # Start running operations on the Graph.
-    sess = tf.Session(config=tf.ConfigProto(
-        log_device_placement=FLAGS.log_device_placement))
+    sess = tf.Session(config=config)
     sess.run(init)
 
     # Start the queue runners.
