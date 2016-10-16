@@ -168,6 +168,7 @@ def distorted_inputs(data_dir, batch_size):
                                                max_delta=75)
   distorted_image = tf.image.random_contrast(distorted_image,
                                              lower=0.2, upper=1.8)
+  distorted_image = tf.image.random_hue(distorted_image, max_delta=0.05)
 
   # Subtract off the mean and divide by the variance of the pixels.
   float_image = tf.image.per_image_whitening(distorted_image)
