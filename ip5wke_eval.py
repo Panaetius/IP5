@@ -58,6 +58,8 @@ tf.app.flags.DEFINE_integer('num_examples', 8000,
 tf.app.flags.DEFINE_boolean('run_once', False,
                          """Whether to run eval only once.""")
 
+tf.app.flags.DEFINE_float('dropout_keep_probability', 1.0, """How many nodes to keep during dropout regularization""")
+
 
 def eval_once(saver, summary_writer, top_k_op, conf_matrix_op, num_classes, summary_op):
   """Run Eval once.

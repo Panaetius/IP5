@@ -64,7 +64,6 @@ NUM_EPOCHS_PER_DECAY = 12.5      # Epochs after which learning rate decays.
 LEARNING_RATE_DECAY_FACTOR = 0.5  # Learning rate decay factor.
 INITIAL_LEARNING_RATE = 0.0001       # Initial learning rate.
 WEIGHT_DECAY = 0.003
-dropout = 0.75                      #dropout keep probability
 
 # If a model is trained with multiple GPUs, prefix all Op names with tower_name
 # to differentiate the operations. Note that this prefix is removed from the
@@ -377,7 +376,7 @@ def inference(images):
                                           connections=4096 + 100, wd=WEIGHT_DECAY)
     biases = _variable_on_cpu('biases', [100], tf.constant_initializer(0.0))
     local5 = tf.nn.elu(tf.matmul(local4, weights) + biases, name=scope.name)
-    local5 = tf.nn.dropout(local5, dropout)
+    local5 = tf.nn.dropout(local5, FLAGS.dropout_keep_probability)
     _activation_summary(local5)
 
   # softmax, i.e. softmax(WX + b)

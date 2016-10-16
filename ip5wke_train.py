@@ -56,6 +56,7 @@ tf.app.flags.DEFINE_integer('max_steps', 100000,
                             """Number of batches to run.""")
 tf.app.flags.DEFINE_boolean('log_device_placement', False,
                             """Whether to log device placement.""")
+tf.app.flags.DEFINE_float('dropout_keep_probability', 0.75, """How many nodes to keep during dropout regularization""")
 
 
 def train():
@@ -64,6 +65,8 @@ def train():
     global_step = tf.Variable(0, trainable=False)
 
     conf_matrix = tf.Variable(tf.zeros([ip5wke.NUM_CLASSES, ip5wke.NUM_CLASSES], tf.float32), name='conf_matrix', trainable=False)
+
+
 
     # Get images and labels for ip5wke.
     images, labels = ip5wke.distorted_inputs()
