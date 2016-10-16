@@ -64,6 +64,7 @@ NUM_EPOCHS_PER_DECAY = 12.5      # Epochs after which learning rate decays.
 LEARNING_RATE_DECAY_FACTOR = 0.5  # Learning rate decay factor.
 INITIAL_LEARNING_RATE = 0.0001       # Initial learning rate.
 WEIGHT_DECAY = 0.003
+dropout = 0.75                      #dropout keep probability
 
 # If a model is trained with multiple GPUs, prefix all Op names with tower_name
 # to differentiate the operations. Note that this prefix is removed from the
@@ -357,7 +358,7 @@ def inference(images):
     reshape = tf.reshape(pool13, [FLAGS.batch_size, -1])
     dim = reshape.get_shape()[1].value
     weights = _variable_with_weight_decay('weights', shape=[dim, 4096],
-                                          connections=3 * 3 * 512 + 4096, wd=0.004)
+                                          connections=3 * 3 * 512 + 4096, wd=WEIGHT_DECAY)
     biases = _variable_on_cpu('biases', [4096], tf.constant_initializer(0.0))
     local3 = tf.nn.elu(tf.matmul(reshape, weights) + biases, name=scope.name)
     _activation_summary(local3)
@@ -365,7 +366,7 @@ def inference(images):
   # local4
   with tf.variable_scope('local4') as scope:
     weights = _variable_with_weight_decay('weights', shape=[4096, 4096],
-                                          connections=4096 + 4096, wd=0.004)
+                                          connections=4096 + 4096, wd=WEIGHT_DECAY)
     biases = _variable_on_cpu('biases', [4096], tf.constant_initializer(0.0))
     local4 = tf.nn.elu(tf.matmul(local3, weights) + biases, name=scope.name)
     _activation_summary(local4)
@@ -373,15 +374,16 @@ def inference(images):
     # local5
   with tf.variable_scope('local5') as scope:
     weights = _variable_with_weight_decay('weights', shape=[4096, 100],
-                                          connections=4096 + 100, wd=0.004)
+                                          connections=4096 + 100, wd=WEIGHT_DECAY)
     biases = _variable_on_cpu('biases', [100], tf.constant_initializer(0.0))
     local5 = tf.nn.elu(tf.matmul(local4, weights) + biases, name=scope.name)
+    local5 = tf.nn.dropout(local5, dropout)
     _activation_summary(local5)
 
   # softmax, i.e. softmax(WX + b)
   with tf.variable_scope('softmax_linear') as scope:
     weights = _variable_with_weight_decay('weights', [100, NUM_CLASSES],
-                                          connections=100 + NUM_CLASSES, wd=WEIGHT_DECAY*0.5)
+                                          connections=100 + NUM_CLASSES, wd=0.0)
     biases = _variable_on_cpu('biases', [NUM_CLASSES],
                               tf.constant_initializer(0.0))
     softmax_linear = tf.add(tf.matmul(local5, weights), biases, name=scope.name)
