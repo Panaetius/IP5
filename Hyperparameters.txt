@@ -106,11 +106,41 @@ INITIAL_LEARNING_RATE = 0.0001
 WEIGHT_DECAY = 0.005 (x15 layer1, x1.3 layer2, x0.1 layer17)
 batch = 20
 
+--> 95.6%, 14:15, 90.02% test
+
 Hyper Parameters (7) (with ELU not RELU):
 MOVING_AVERAGE_DECAY = 0.9999   
 NUM_EPOCHS_PER_DECAY = 12.5     
 LEARNING_RATE_DECAY_FACTOR = 0.5 
-INITIAL_LEARNING_RATE = 0.0001  
-WEIGHT_DECAY = 0.003 (x10 layer1, x1.3 layer2, x0.1 layer17)
+INITIAL_LEARNING_RATE = 0.00007  
+WEIGHT_DECAY = 0.002 (x10 layer1, x1.3 layer2, x0.1 layer17)
+DROPOUT (FC Layers) = 75%
 batch = 22
 
+--> 98%, 17:40
+	2016-10-17 14:50:37.237786: precision @ 1 = 0.922
+	precisions: [ 1.          0.99435028  0.98115942  1.          1.          0.84466019
+	  0.87061995  0.82139037  0.82146161  0.99183197]
+	recalls: [ 1.          1.          1.          0.99622642  1.          0.91901408
+	  0.80548628  0.74418605  0.88446215  0.98265896]
+	f1: [ 1.          0.99716714  0.99049012  0.99810964  1.          0.88026981
+	  0.83678756  0.7808846   0.85179856  0.98722416]
+
+
+Hyper Parameters (8) (with ELU not RELU):
+MOVING_AVERAGE_DECAY = 0.9999   
+NUM_EPOCHS_PER_DECAY = 12.5     
+LEARNING_RATE_DECAY_FACTOR = 0.5 
+INITIAL_LEARNING_RATE = 0.00007  
+WEIGHT_DECAY = 0.0015 (x10 layer1, x1.3 layer2, x0.1 layer17)
+DROPOUT (FC Layers) = 50%
+batch = 22
+
+--> 98.6%, 1d 1:55
+	2016-10-18 20:14:51.750171: precision @ 1 = 0.935, @ 2 = 0.977
+	precisions: [ 1.          0.99576271  0.99565217  0.99337121  1.          0.86731392
+	  0.89636608  0.85775401  0.85555556  0.97780374]
+	recalls: [ 0.99837134  0.98601399  1.          1.          1.          0.91990847
+ 	 0.91232877  0.75517891  0.89361702  0.99288256]
+	f1: [ 0.999185    0.99086437  0.99782135  0.99667458  1.          0.89283731
+ 	 0.90427699  0.80320481  0.87417219  0.98528546]
