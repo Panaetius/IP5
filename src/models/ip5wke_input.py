@@ -1,18 +1,3 @@
-# Copyright 2015 The TensorFlow Authors. All Rights Reserved.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# ==============================================================================
-
 """Routine for decoding the ip5wke binary file format."""
 
 from __future__ import absolute_import
@@ -21,7 +6,6 @@ from __future__ import print_function
 
 import os
 
-from six.moves import xrange  # pylint: disable=redefined-builtin
 import tensorflow as tf
 
 # Process images of this size. Note that this differs from the original ip5wke
@@ -62,20 +46,11 @@ def read_ip5wke(filename_queue, data_dir):
 
     result = ip5wkeRecord()
 
-    # Dimensions of the images in the ip5wke dataset.
-    # See http://www.cs.toronto.edu/~kriz/ip5wke.html for a description of the
-    # input format.
-
-
-    # Read a record, getting filenames from the filename_queue.  No
-    # header or footer in the ip5wke format, so we leave header_bytes
-    # and footer_bytes at their default of 0.
-
-
     reader = tf.TextLineReader()
     result.key, value = reader.read(filename_queue)
     record_defaults = [[''], [0]]
-    filename, label = tf.decode_csv(value, field_delim=' ', record_defaults=record_defaults)
+    filename, label = tf.decode_csv(value, field_delim=' ',
+                                    record_defaults=record_defaults)
     file_contents = tf.read_file(tf.add(data_dir + '/../', filename))
     image = tf.image.decode_png(file_contents, channels=3)
 
@@ -138,7 +113,7 @@ def distorted_inputs(data_dir, batch_size):
       images: Images. 4D tensor of [batch_size, IMAGE_SIZE, IMAGE_SIZE, 3] size.
       labels: Labels. 1D tensor of [batch_size] size.
     """
-    filenames = [os.path.join(data_dir, 'files.txt')]  # 'data_batch_%d.bin' % i)
+    filenames = [os.path.join(data_dir, 'files.txt')]
     # for i in xrange(1, 6)]
     for f in filenames:
         if not tf.gfile.Exists(f):
@@ -200,11 +175,12 @@ def inputs(eval_data, data_dir, batch_size):
       labels: Labels. 1D tensor of [batch_size] size.
     """
     if not eval_data:
-        filenames = [os.path.join(data_dir.replace('train', 'validation'), 'files.txt')]  # 'data_batch_%d.bin' % i)
-        # for i in xrange(1, 6)]
+        filenames = [os.path.join(data_dir.replace('train', 'validation'),
+                                  'files.txt')]
         num_examples_per_epoch = NUM_EXAMPLES_PER_EPOCH_FOR_TRAIN
     else:
-        filenames = [os.path.join(data_dir.replace('train', 'test'), 'files.txt')]
+        filenames = [os.path.join(data_dir.replace('train', 'test'),
+                                  'files.txt')]
         num_examples_per_epoch = NUM_EXAMPLES_PER_EPOCH_FOR_EVAL
 
     for f in filenames:

@@ -1,18 +1,3 @@
-# Copyright 2015 The TensorFlow Authors. All Rights Reserved.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# ==============================================================================
-
 """Builds the ip5wke network.
 Summary of available functions:
  # Compute input images and labels for training. If you would like to run
@@ -30,13 +15,9 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import gzip
 import os
 import re
-import sys
-import tarfile
 
-from six.moves import urllib
 import tensorflow as tf
 
 import ip5wke_input
@@ -46,7 +27,9 @@ FLAGS = tf.app.flags.FLAGS
 # Basic model parameters.
 tf.app.flags.DEFINE_integer('batch_size', 19,
                             """Number of images to process in a batch.""")
-tf.app.flags.DEFINE_string('data_dir', os.path.join(os.path.dirname(__file__), os.pardir, os.pardir, 'data', 'processed'),
+tf.app.flags.DEFINE_string('data_dir', os.path.join(os.path.dirname(__file__),
+                                                    os.pardir, os.pardir,
+                                                    'data', 'processed'),
                            """Path to the ip5wke data directory.""")
 tf.app.flags.DEFINE_boolean('use_fp16', False,
                             """Train the model using fp16.""")
@@ -62,7 +45,7 @@ MOVING_AVERAGE_DECAY = 0.9999  # The decay to use for the moving average.
 NUM_EPOCHS_PER_DECAY = 40  # Epochs after which learning rate decays.
 LEARNING_RATE_DECAY_FACTOR = 0.25  # Learning rate decay factor.
 INITIAL_LEARNING_RATE = 0.00007  # Initial learning rate. 0.00007
-WEIGHT_DECAY = 0.0015 #0.0015
+WEIGHT_DECAY = 0.0015
 ADAM_EPSILON = 0.0001
 
 # If a model is trained with multiple GPUs, prefix all Op names with tower_name
@@ -159,7 +142,7 @@ def inputs(eval_data):
     """
     if not FLAGS.data_dir:
         raise ValueError('Please supply a data_dir')
-    data_dir = FLAGS.data_dir  # os.path.join(FLAGS.data_dir, 'ip5wke-batches-bin')
+    data_dir = FLAGS.data_dir
     images, labels = ip5wke_input.inputs(eval_data=eval_data,
                                          data_dir=data_dir,
                                          batch_size=FLAGS.batch_size)
@@ -177,7 +160,8 @@ def inference(images):
       Logits.
     """
     # We instantiate all variables using tf.get_variable() instead of
-    # tf.Variable() in order to share variables across multiple GPU training runs.
+    # tf.Variable() in order to share variables across multiple GPU
+    # training runs.
     # If we only ran this model on a single GPU, we could simplify this function
     # by replacing all instances of tf.get_variable() with tf.Variable().
 
@@ -193,7 +177,7 @@ def inference(images):
         _activation_summary(conv1)
         grid = put_kernels_on_grid(kernel, (8, 8))
         tf.image_summary('conv1/features', grid, max_images=1)
-        grid = put_activations_on_grid(conv, (8,8))
+        grid = put_activations_on_grid(conv, (8, 8))
         tf.image_summary('conv1/activations', grid, max_images=1)
 
     with tf.variable_scope('conv2') as scope:
@@ -206,7 +190,7 @@ def inference(images):
         bias = tf.nn.bias_add(conv, biases)
         conv2 = tf.nn.elu(bias, name=scope.name)
         _activation_summary(conv2)
-        grid = put_activations_on_grid(conv, (8,8))
+        grid = put_activations_on_grid(conv, (8, 8))
         tf.image_summary('conv2/activations', grid, max_images=1)
 
     pool2 = tf.nn.max_pool(conv2, ksize=[1, 2, 2, 1],
@@ -224,7 +208,7 @@ def inference(images):
         bias = tf.nn.bias_add(conv, biases)
         conv3 = tf.nn.elu(bias, name=scope.name)
         _activation_summary(conv3)
-        grid = put_activations_on_grid(conv, (8,16))
+        grid = put_activations_on_grid(conv, (8, 16))
         tf.image_summary('conv3/activations', grid, max_images=1)
 
     with tf.variable_scope('conv4') as scope:
@@ -237,7 +221,7 @@ def inference(images):
         bias = tf.nn.bias_add(conv, biases)
         conv4 = tf.nn.elu(bias, name=scope.name)
         _activation_summary(conv4)
-        grid = put_activations_on_grid(conv, (8,16))
+        grid = put_activations_on_grid(conv, (8, 16))
         tf.image_summary('conv4/activations', grid, max_images=1)
 
     pool4 = tf.nn.max_pool(conv4, ksize=[1, 2, 2, 1],
@@ -255,7 +239,7 @@ def inference(images):
         bias = tf.nn.bias_add(conv, biases)
         conv5 = tf.nn.elu(bias, name=scope.name)
         _activation_summary(conv5)
-        grid = put_activations_on_grid(conv, (16,16))
+        grid = put_activations_on_grid(conv, (16, 16))
         tf.image_summary('conv5/activations', grid, max_images=1)
 
     with tf.variable_scope('conv6') as scope:
@@ -268,7 +252,7 @@ def inference(images):
         bias = tf.nn.bias_add(conv, biases)
         conv6 = tf.nn.elu(bias, name=scope.name)
         _activation_summary(conv6)
-        grid = put_activations_on_grid(conv, (16,16))
+        grid = put_activations_on_grid(conv, (16, 16))
         tf.image_summary('conv6/activations', grid, max_images=1)
 
     with tf.variable_scope('conv7') as scope:
@@ -281,7 +265,7 @@ def inference(images):
         bias = tf.nn.bias_add(conv, biases)
         conv7 = tf.nn.elu(bias, name=scope.name)
         _activation_summary(conv7)
-        grid = put_activations_on_grid(conv, (16,16))
+        grid = put_activations_on_grid(conv, (16, 16))
         tf.image_summary('conv7/activations', grid, max_images=1)
 
     pool7 = tf.nn.max_pool(conv7, ksize=[1, 2, 2, 1],
@@ -299,7 +283,7 @@ def inference(images):
         bias = tf.nn.bias_add(conv, biases)
         conv8 = tf.nn.elu(bias, name=scope.name)
         _activation_summary(conv8)
-        grid = put_activations_on_grid(conv, (16,32))
+        grid = put_activations_on_grid(conv, (16, 32))
         tf.image_summary('conv8/activations', grid, max_images=1)
 
     with tf.variable_scope('conv9') as scope:
@@ -312,7 +296,7 @@ def inference(images):
         bias = tf.nn.bias_add(conv, biases)
         conv9 = tf.nn.elu(bias, name=scope.name)
         _activation_summary(conv9)
-        grid = put_activations_on_grid(conv, (16,32))
+        grid = put_activations_on_grid(conv, (16, 32))
         tf.image_summary('conv9/activations', grid, max_images=1)
 
     with tf.variable_scope('conv10') as scope:
@@ -325,7 +309,7 @@ def inference(images):
         bias = tf.nn.bias_add(conv, biases)
         conv10 = tf.nn.elu(bias, name=scope.name)
         _activation_summary(conv10)
-        grid = put_activations_on_grid(conv, (16,32))
+        grid = put_activations_on_grid(conv, (16, 32))
         tf.image_summary('conv10/activations', grid, max_images=1)
 
     pool10 = tf.nn.max_pool(conv10, ksize=[1, 2, 2, 1],
@@ -343,7 +327,7 @@ def inference(images):
         bias = tf.nn.bias_add(conv, biases)
         conv11 = tf.nn.elu(bias, name=scope.name)
         _activation_summary(conv11)
-        grid = put_activations_on_grid(conv, (16,32))
+        grid = put_activations_on_grid(conv, (16, 32))
         tf.image_summary('conv11/activations', grid, max_images=1)
 
     with tf.variable_scope('conv12') as scope:
@@ -356,7 +340,7 @@ def inference(images):
         bias = tf.nn.bias_add(conv, biases)
         conv12 = tf.nn.elu(bias, name=scope.name)
         _activation_summary(conv12)
-        grid = put_activations_on_grid(conv, (16,32))
+        grid = put_activations_on_grid(conv, (16, 32))
         tf.image_summary('conv12/activations', grid, max_images=1)
 
     with tf.variable_scope('conv13') as scope:
@@ -369,7 +353,7 @@ def inference(images):
         bias = tf.nn.bias_add(conv, biases)
         conv13 = tf.nn.elu(bias, name=scope.name)
         _activation_summary(conv13)
-        grid = put_activations_on_grid(conv, (16,32))
+        grid = put_activations_on_grid(conv, (16, 32))
         tf.image_summary('conv13/activations', grid, max_images=1)
 
     pool13 = tf.nn.max_pool(conv13, ksize=[1, 2, 2, 1],
@@ -383,17 +367,22 @@ def inference(images):
         reshape = tf.reshape(pool13, [FLAGS.batch_size, -1])
         dim = reshape.get_shape()[1].value
         weights = _variable_with_weight_decay('weights', shape=[dim, 4096],
-                                              connections=3 * 3 * 512 + 4096, wd=WEIGHT_DECAY)
-        biases = _variable_on_cpu('biases', [4096], tf.constant_initializer(0.0))
-        local3 = tf.nn.elu(tf.matmul(reshape, weights) + biases, name=scope.name)
+                                              connections=3 * 3 * 512 + 4096,
+                                              wd=WEIGHT_DECAY)
+        biases = _variable_on_cpu('biases', [4096],
+                                  tf.constant_initializer(0.0))
+        local3 = tf.nn.elu(tf.matmul(reshape, weights) + biases,
+                           name=scope.name)
         local3 = tf.nn.dropout(local3, FLAGS.dropout_keep_probability)
         _activation_summary(local3)
 
     # local4
     with tf.variable_scope('local4') as scope:
         weights = _variable_with_weight_decay('weights', shape=[4096, 4096],
-                                              connections=4096 + 4096, wd=WEIGHT_DECAY)
-        biases = _variable_on_cpu('biases', [4096], tf.constant_initializer(0.0))
+                                              connections=4096 + 4096,
+                                              wd=WEIGHT_DECAY)
+        biases = _variable_on_cpu('biases', [4096],
+                                  tf.constant_initializer(0.0))
         local4 = tf.nn.elu(tf.matmul(local3, weights) + biases, name=scope.name)
         local4 = tf.nn.dropout(local4, FLAGS.dropout_keep_probability)
         _activation_summary(local4)
@@ -401,7 +390,8 @@ def inference(images):
         # local5
     with tf.variable_scope('local5') as scope:
         weights = _variable_with_weight_decay('weights', shape=[4096, 100],
-                                              connections=4096 + 100, wd=WEIGHT_DECAY)
+                                              connections=4096 + 100,
+                                              wd=WEIGHT_DECAY)
         biases = _variable_on_cpu('biases', [100], tf.constant_initializer(0.0))
         local5 = tf.nn.elu(tf.matmul(local4, weights) + biases, name=scope.name)
         local5 = tf.nn.dropout(local5, FLAGS.dropout_keep_probability)
@@ -410,10 +400,12 @@ def inference(images):
     # softmax, i.e. softmax(WX + b)
     with tf.variable_scope('softmax_linear') as scope:
         weights = _variable_with_weight_decay('weights', [100, NUM_CLASSES],
-                                              connections=100 + NUM_CLASSES, wd=0.0)
+                                              connections=100 + NUM_CLASSES,
+                                              wd=0.0)
         biases = _variable_on_cpu('biases', [NUM_CLASSES],
                                   tf.constant_initializer(0.0))
-        softmax_linear = tf.add(tf.matmul(local5, weights), biases, name=scope.name)
+        softmax_linear = tf.add(tf.matmul(local5, weights), biases,
+                                name=scope.name)
         _activation_summary(softmax_linear)
 
     return softmax_linear
@@ -437,25 +429,26 @@ def loss(logits, labels):
     tf.add_to_collection('accuracies', accuracy)
 
     curr_conf_matrix = tf.cast(
-        tf.contrib.metrics.confusion_matrix(tf.argmax(logits, 1), labels, num_classes=NUM_CLASSES), tf.float32)
+        tf.contrib.metrics.confusion_matrix(tf.argmax(logits, 1), labels,
+                                            num_classes=NUM_CLASSES),
+        tf.float32)
     conf_matrix = tf.get_variable('conf_matrix', dtype=tf.float32,
-                                  initializer=tf.zeros([NUM_CLASSES, NUM_CLASSES], tf.float32), trainable=False)
+                                  initializer=tf.zeros(
+                                      [NUM_CLASSES, NUM_CLASSES],
+                                      tf.float32),
+                                  trainable=False)
 
-    conf_matrix.assign(
-        tf.mul(conf_matrix, 0.97))  # make old values decay so early errors don't distort the confusion matrix
+    # make old values decay so early errors don't distort the confusion matrix
+    conf_matrix.assign(tf.mul(conf_matrix, 0.97))
 
     conf_matrix = conf_matrix.assign_add(curr_conf_matrix)
 
-    # conf_matrix = tf.Print(conf_matrix, [conf_matrix], "conf_matrix: ", summarize=100)
-
     tf.image_summary('Confusion Matrix',
-                     tf.reshape(tf.clip_by_norm(conf_matrix, 1, axes=[0]), [1, NUM_CLASSES, NUM_CLASSES, 1]))
+                     tf.reshape(tf.clip_by_norm(conf_matrix, 1, axes=[0]),
+                                [1, NUM_CLASSES, NUM_CLASSES, 1]))
 
-    # labels = tf.Print(labels, [labels], "labels: ", summarize=100)
-    # logits = tf.Print(logits, [logits], "logits: ", summarize=100)
     cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(
         logits, labels, name='cross_entropy_per_example')
-    # cross_entropy = tf.Print(cross_entropy, [cross_entropy], "cross_entropy: ", summarize=100)
     cross_entropy_mean = tf.reduce_mean(cross_entropy, name='cross_entropy')
     tf.add_to_collection('losses', cross_entropy_mean)
 
@@ -482,11 +475,11 @@ def _add_loss_summaries(total_loss):
     for a in accuracies:
         tf.scalar_summary('accuracy', a)
 
-    # Attach a scalar summary to all individual losses and the total loss; do the
-    # same for the averaged version of the losses.
+    # Attach a scalar summary to all individual losses and the total loss;
+    # do the same for the averaged version of the losses.
     for l in losses + [total_loss]:
-        # Name each loss as '(raw)' and name the moving average version of the loss
-        # as the original loss name.
+        # Name each loss as '(raw)' and name the moving average version of the
+        # loss as the original loss name.
         tf.scalar_summary(l.op.name + ' (raw)', l)
         tf.scalar_summary(l.op.name, loss_averages.average(l))
 
@@ -548,17 +541,17 @@ def train(total_loss, global_step):
 
 
 def put_kernels_on_grid(kernel, grid, pad=1):
-    '''Visualize conv. features as an image (mostly for the 1st layer).
+    """Visualize conv. features as an image (mostly for the 1st layer).
     Place kernel into a grid, with some paddings between adjacent filters.
     Args:
       kernel:            tensor of shape [Y, X, NumChannels, NumKernels]
-      (grid_Y, grid_X):  shape of the grid. Require: NumKernels == grid_Y * grid_X
-                           User is responsible of how to break into two multiples.
-      pad:               number of black pixels around each filter (between them)
+      (grid_Y, grid_X):shape of the grid. Require: NumKernels == grid_Y * grid_X
+                        User is responsible of how to break into two multiples.
+      pad:              number of black pixels around each filter (between them)
 
     Return:
       Tensor of shape [(Y+pad)*grid_Y, (X+pad)*grid_X, NumChannels, 1].
-    '''
+    """
     grid_Y, grid_X = grid
     # pad X and Y
     x1 = tf.pad(kernel, tf.constant([[pad, 0], [pad, 0], [0, 0], [0, 0]]))
@@ -593,21 +586,21 @@ def put_kernels_on_grid(kernel, grid, pad=1):
 
 
 def put_activations_on_grid(activations, grid, pad=1):
-    '''Visualize conv. features as an image (mostly for the 1st layer).
+    """Visualize conv. features as an image (mostly for the 1st layer).
     Place kernel into a grid, with some paddings between adjacent filters.
     Args:
       kernel:            tensor of shape [Y, X, NumChannels, NumKernels]
-      (grid_Y, grid_X):  shape of the grid. Require: NumKernels == grid_Y * grid_X
-                           User is responsible of how to break into two multiples.
-      pad:               number of black pixels around each filter (between them)
+      (grid_Y, grid_X):shape of the grid. Require: NumKernels == grid_Y * grid_X
+                        User is responsible of how to break into two multiples.
+      pad:              number of black pixels around each filter (between them)
 
     Return:
       Tensor of shape [(Y+pad)*grid_Y, (X+pad)*grid_X, NumChannels, 1].
-    '''
+    """
     grid_Y, grid_X = grid
-    #get first image in batch to make things simpler
-    activ = activations[1,:]
-    #greyscale
+    # get first image in batch to make things simpler
+    activ = activations[1, :]
+    # greyscale
     activ = tf.expand_dims(activ, 2)
     # pad X and Y
     x1 = tf.pad(activ, tf.constant([[pad, 0], [pad, 0], [0, 0], [0, 0]]))

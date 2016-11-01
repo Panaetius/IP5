@@ -1,18 +1,3 @@
-# Copyright 2015 The TensorFlow Authors. All Rights Reserved.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# ==============================================================================
-
 """A binary to train ip5wke using a single GPU.
 
 Accuracy:
@@ -56,7 +41,8 @@ tf.app.flags.DEFINE_integer('max_steps', 100000,
                             """Number of batches to run.""")
 tf.app.flags.DEFINE_boolean('log_device_placement', False,
                             """Whether to log device placement.""")
-tf.app.flags.DEFINE_float('dropout_keep_probability', 0.5, """How many nodes to keep during dropout regularization""")
+tf.app.flags.DEFINE_float('dropout_keep_probability', 0.5,
+                          """How many nodes to keep during dropout""")
 
 
 def train():
@@ -64,7 +50,10 @@ def train():
     with tf.Graph().as_default():
         global_step = tf.Variable(0, trainable=False)
 
-        conf_matrix = tf.Variable(tf.zeros([ip5wke.NUM_CLASSES, ip5wke.NUM_CLASSES], tf.float32), name='conf_matrix',
+        conf_matrix = tf.Variable(tf.zeros([ip5wke.NUM_CLASSES,
+                                            ip5wke.NUM_CLASSES],
+                                           tf.float32),
+                                  name='conf_matrix',
                                   trainable=False)
 
         # Get images and labels for ip5wke.
@@ -82,7 +71,8 @@ def train():
         train_op = ip5wke.train(loss, global_step)
 
         # Create a saver.
-        saver = tf.train.Saver(tf.all_variables(), write_version=tf.train.SaverDef.V2)
+        saver = tf.train.Saver(tf.all_variables(),
+                               write_version=tf.train.SaverDef.V2)
 
         # Build the summary operation based on the TF collection of Summaries.
         summary_op = tf.merge_all_summaries()
@@ -111,13 +101,15 @@ def train():
                 num_examples_per_step = FLAGS.batch_size
                 examples_per_sec = num_examples_per_step / duration
                 sec_per_batch = float(duration)
-                correct_prediction = tf.equal(tf.argmax(logits, 1), tf.cast(labels, tf.int64))
-                accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+                correct_prediction = tf.equal(tf.argmax(logits, 1),
+                                              tf.cast(labels, tf.int64))
+                accuracy = tf.reduce_mean(tf.cast(correct_prediction,
+                                                  tf.float32))
                 train_acc = sess.run(accuracy)
                 tf.scalar_summary('accuracy', accuracy)
 
-                format_str = ('%s: step %d, loss = %.2f, accuracy = %.2f (%.1f examples/sec; %.3f '
-                              'sec/batch)')
+                format_str = ('%s: step %d, loss = %.2f, accuracy = %.2f '
+                              '(%.1f examples/sec; %.3f sec/batch)')
                 print(format_str % (datetime.now(), step, loss_value, train_acc,
                                     examples_per_sec, sec_per_batch))
 

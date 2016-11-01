@@ -1,13 +1,17 @@
-#This file crops (centered) images in the 'orig' directory ending in .JPG and saves them as 250x250px bitmaps in the corresponding train dir
-from PIL import Image, ImageChops
+# This file crops (centered) images in the 'orig' directory ending in .JPG
+# and saves them as 250x250px bitmaps in the corresponding train dir
+from PIL import Image
 import os
 from joblib import Parallel, delayed
-import multiprocessing
 
 
 def resize_and_crop(dir, target_dir):
     for root, dirs, files in os.walk(dir):
-        Parallel(n_jobs=8)(delayed(CopyAndResizeImage)(fn=fn, dir=dir, root=root, target_dir=target_dir) for fn in files)
+        Parallel(n_jobs=8)(delayed(CopyAndResizeImage)(fn=fn,
+                                                       dir=dir,
+                                                       root=root,
+                                                       target_dir=target_dir
+                                                       ) for fn in files)
 
 
 def CopyAndResizeImage(dir, fn, root, target_dir):
@@ -30,8 +34,11 @@ def CopyAndResizeImage(dir, fn, root, target_dir):
         image_size = image.size
 
         # crop the image to 250,250 centered
-        thumb = image.crop(((image_size[0] - size[0]) / 2, (image_size[1] - size[1]) / 2, (image_size[0] + size[0]) / 2,
-                            (image_size[1] + size[1]) / 2))
+        thumb = image.crop((
+            (image_size[0] - size[0]) / 2,
+            (image_size[1] - size[1]) / 2,
+            (image_size[0] + size[0]) / 2,
+            (image_size[1] + size[1]) / 2))
 
         new_fn = fn.replace(dir, target_dir).replace('.JPG', '.PNG')
 

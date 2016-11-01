@@ -1,18 +1,3 @@
-# Copyright 2015 The TensorFlow Authors. All Rights Reserved.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# ==============================================================================
-
 """Evaluation for ip5wke.
 
 Accuracy:
@@ -58,10 +43,12 @@ tf.app.flags.DEFINE_integer('num_examples', 8000,
 tf.app.flags.DEFINE_boolean('run_once', False,
                             """Whether to run eval only once.""")
 
-tf.app.flags.DEFINE_float('dropout_keep_probability', 1.0, """How many nodes to keep during dropout regularization""")
+tf.app.flags.DEFINE_float('dropout_keep_probability', 1.0,
+                          "How many nodes to keep during dropout")
 
 
-def eval_once(saver, summary_writer, top_k_op, top_k_op2, conf_matrix_op, num_classes, summary_op):
+def eval_once(saver, summary_writer, top_k_op, top_k_op2, conf_matrix_op,
+              num_classes, summary_op):
     """Run Eval once.
 
     Args:
@@ -81,7 +68,8 @@ def eval_once(saver, summary_writer, top_k_op, top_k_op2, conf_matrix_op, num_cl
             # Assuming model_checkpoint_path looks something like:
             #   /my-favorite-path/ip5wke_train/model.ckpt-0,
             # extract global_step from it.
-            global_step = ckpt.model_checkpoint_path.split('/')[-1].split('-')[-1]
+            global_step = ckpt.model_checkpoint_path.split('/')[-1] \
+                .split('-')[-1]
         else:
             print('No checkpoint file found')
             return
@@ -104,7 +92,8 @@ def eval_once(saver, summary_writer, top_k_op, top_k_op2, conf_matrix_op, num_cl
             tp = np.zeros(shape=(num_classes))
 
             while step < num_iter and not coord.should_stop():
-                predictions, predictions2, conf_matrix = sess.run([top_k_op, top_k_op2, conf_matrix_op])
+                predictions, predictions2, conf_matrix = sess.run(
+                    [top_k_op, top_k_op2, conf_matrix_op])
                 true_count += np.sum(predictions)
                 true_count2 += np.sum(predictions2)
                 precisions += conf_matrix.sum(axis=0)
@@ -116,11 +105,14 @@ def eval_once(saver, summary_writer, top_k_op, top_k_op2, conf_matrix_op, num_cl
             # Compute precision @ 1.
             precision = true_count / total_sample_count
             precision2 = true_count2 / total_sample_count
-            print('%s: precision @ 1 = %.3f, @ 3 = %.3f' % (datetime.now(), precision, precision2))
+            print('%s: precision @ 1 = %.3f, @ 3 = %.3f' % (datetime.now(),
+                                                            precision,
+                                                            precision2))
 
             precs = np.divide(tp, precisions)
             recs = np.divide(tp, recalls)
-            f1_scores = np.multiply(2.0, np.divide(np.multiply(precs, recs), np.add(precs, recs)))
+            f1_scores = np.multiply(2.0, np.divide(np.multiply(precs, recs),
+                                                   np.add(precs, recs)))
 
             print('precisions: ' + str(precs))
             print('recalls: ' + str(recs))
@@ -151,14 +143,16 @@ def evaluate():
         # Calculate predictions.
         top_k_op = tf.nn.in_top_k(logits, labels, 1)
         top_k_op2 = tf.nn.in_top_k(logits, labels, 3)
-        conf_matrix_op = tf.contrib.metrics.confusion_matrix(tf.argmax(logits, 1), labels,
-                                                             num_classes=ip5wke.NUM_CLASSES)
+        conf_matrix_op = tf.contrib.metrics.confusion_matrix(
+            tf.argmax(logits, 1), labels,
+            num_classes=ip5wke.NUM_CLASSES)
 
         # Restore the moving average version of the learned variables for eval.
         variable_averages = tf.train.ExponentialMovingAverage(
             ip5wke.MOVING_AVERAGE_DECAY)
         variables_to_restore = variable_averages.variables_to_restore()
-        saver = tf.train.Saver(variables_to_restore, write_version=tf.train.SaverDef.V2)
+        saver = tf.train.Saver(variables_to_restore,
+                               write_version=tf.train.SaverDef.V2)
 
         # Build the summary operation based on the TF collection of Summaries.
         summary_op = tf.merge_all_summaries()
@@ -166,7 +160,8 @@ def evaluate():
         summary_writer = tf.train.SummaryWriter(FLAGS.eval_dir, g)
 
         while True:
-            eval_once(saver, summary_writer, top_k_op, top_k_op2, conf_matrix_op, ip5wke.NUM_CLASSES, summary_op)
+            eval_once(saver, summary_writer, top_k_op, top_k_op2,
+                      conf_matrix_op, ip5wke.NUM_CLASSES, summary_op)
             if FLAGS.run_once:
                 break
             time.sleep(FLAGS.eval_interval_secs)
