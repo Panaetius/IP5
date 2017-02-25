@@ -45,7 +45,7 @@ NUM_EXAMPLES_PER_EPOCH_FOR_EVAL = ip5wke_input.NUM_EXAMPLES_PER_EPOCH_FOR_EVAL
 MOVING_AVERAGE_DECAY = 0.9999  # The decay to use for the moving average.
 NUM_EPOCHS_PER_DECAY = 40  # Epochs after which learning rate decays.
 LEARNING_RATE_DECAY_FACTOR = 0.25  # Learning rate decay factor.
-INITIAL_LEARNING_RATE = 0.00007  # Initial learning rate. 0.00007
+INITIAL_LEARNING_RATE = 0.00005  # Initial learning rate. 0.00007
 WEIGHT_DECAY = 0.0015
 ADAM_EPSILON = 0.0001
 
@@ -69,8 +69,8 @@ def _activation_summary(x):
     # Remove 'tower_[0-9]/' from the name in case this is a multi-GPU training
     # session. This helps the clarity of presentation on tensorboard.
     tensor_name = re.sub('%s_[0-9]*/' % TOWER_NAME, '', x.op.name)
-    tf.histogram_summary(tensor_name + '/activations', x)
-    tf.scalar_summary(tensor_name + '/sparsity', tf.nn.zero_fraction(x))
+    tf.summary.histogram(tensor_name + '/activations', x)
+    tf.summary.scalar(tensor_name + '/sparsity', tf.nn.zero_fraction(x))
 
 
 def _variable_on_cpu(name, shape, initializer):
@@ -107,7 +107,7 @@ def _variable_with_weight_decay(name, shape, connections, wd):
         shape,
         tf.contrib.layers.xavier_initializer(dtype=dtype))
     if wd is not None:
-        weight_decay = tf.mul(tf.nn.l2_loss(var), wd, name='weight_loss')
+        weight_decay = tf.multiply(tf.nn.l2_loss(var), wd, name='weight_loss')
         tf.add_to_collection('losses', weight_decay)
     return var
 
@@ -440,7 +440,7 @@ def loss(logits, labels):
                                   trainable=False)
 
     # make old values decay so early errors don't distort the confusion matrix
-    conf_matrix.assign(tf.mul(conf_matrix, 0.97))
+    conf_matrix.assign(tf.multiply(conf_matrix, 0.97))
 
     conf_matrix = conf_matrix.assign_add(curr_conf_matrix)
 
@@ -449,7 +449,7 @@ def loss(logits, labels):
                                 [1, NUM_CLASSES, NUM_CLASSES, 1]))
 
     cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(
-        logits, labels, name='cross_entropy_per_example')
+        logits=logits, labels=labels, name='cross_entropy_per_example')
     cross_entropy_mean = tf.reduce_mean(cross_entropy, name='cross_entropy')
     tf.add_to_collection('losses', cross_entropy_mean)
 
@@ -474,15 +474,15 @@ def _add_loss_summaries(total_loss):
 
     accuracies = tf.get_collection('accuracies')
     for a in accuracies:
-        tf.scalar_summary('accuracy', a)
+        tf.summary.scalar('accuracy', a)
 
     # Attach a scalar summary to all individual losses and the total loss;
     # do the same for the averaged version of the losses.
     for l in losses + [total_loss]:
         # Name each loss as '(raw)' and name the moving average version of the
         # loss as the original loss name.
-        tf.scalar_summary(l.op.name + ' (raw)', l)
-        tf.scalar_summary(l.op.name, loss_averages.average(l))
+        tf.summary.scalar(l.op.name + ' (raw)', l)
+        tf.summary.scalar(l.op.name, loss_averages.average(l))
 
     return loss_averages_op
 
@@ -508,7 +508,7 @@ def train(total_loss, global_step):
                                     decay_steps,
                                     LEARNING_RATE_DECAY_FACTOR,
                                     staircase=True)
-    tf.scalar_summary('learning_rate', lr)
+    tf.summary.scalar('learning_rate', lr)
 
     # Generate moving averages of all losses and associated summaries.
     loss_averages_op = _add_loss_summaries(total_loss)
@@ -523,12 +523,12 @@ def train(total_loss, global_step):
 
     # Add histograms for trainable variables.
     for var in tf.trainable_variables():
-        tf.histogram_summary(var.op.name, var)
+        tf.summary.histogram(var.op.name, var)
 
     # Add histograms for gradients.
     for grad, var in grads:
         if grad is not None:
-            tf.histogram_summary(var.op.name + '/gradients', grad)
+            tf.summary.histogram(var.op.name + '/gradients', grad)
 
     # Track the moving averages of all trainable variables.
     variable_averages = tf.train.ExponentialMovingAverage(
@@ -564,12 +564,12 @@ def put_kernels_on_grid(kernel, grid, pad=1):
     # put NumKernels to the 1st dimension
     x2 = tf.transpose(x1, (3, 0, 1, 2))
     # organize grid on Y axis
-    x3 = tf.reshape(x2, tf.pack([grid_X, Y * grid_Y, X, 3]))
+    x3 = tf.reshape(x2, tf.stack([grid_X, Y * grid_Y, X, 3]))
 
     # switch X and Y axes
     x4 = tf.transpose(x3, (0, 2, 1, 3))
     # organize grid on X axis
-    x5 = tf.reshape(x4, tf.pack([1, X * grid_X, Y * grid_Y, 3]))
+    x5 = tf.reshape(x4, tf.stack([1, X * grid_X, Y * grid_Y, 3]))
 
     # back to normal order (not combining with the next step for clarity)
     x6 = tf.transpose(x5, (2, 1, 3, 0))
@@ -613,12 +613,12 @@ def put_activations_on_grid(activations, grid, pad=1):
     # put NumKernels to the 1st dimension
     x2 = tf.transpose(x1, (3, 0, 1, 2))
     # organize grid on Y axis
-    x3 = tf.reshape(x2, tf.pack([grid_X, Y * grid_Y, X, 1]))
+    x3 = tf.reshape(x2, tf.stack([grid_X, Y * grid_Y, X, 1]))
 
     # switch X and Y axes
     x4 = tf.transpose(x3, (0, 2, 1, 3))
     # organize grid on X axis
-    x5 = tf.reshape(x4, tf.pack([1, X * grid_X, Y * grid_Y, 1]))
+    x5 = tf.reshape(x4, tf.stack([1, X * grid_X, Y * grid_Y, 1]))
 
     # back to normal order (not combining with the next step for clarity)
     x6 = tf.transpose(x5, (2, 1, 3, 0))

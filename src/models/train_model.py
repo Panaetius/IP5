@@ -71,14 +71,14 @@ def train():
         train_op = ip5wke.train(loss, global_step)
 
         # Create a saver.
-        saver = tf.train.Saver(tf.all_variables(),
+        saver = tf.train.Saver(tf.global_variables(),
                                write_version=tf.train.SaverDef.V2)
 
         # Build the summary operation based on the TF collection of Summaries.
-        summary_op = tf.merge_all_summaries()
+        summary_op = tf.summary.merge_all()
 
         # Build an initialization operation to run below.
-        init = tf.initialize_all_variables()
+        init = tf.global_variables_initializer()
         config = tf.ConfigProto(log_device_placement=FLAGS.log_device_placement)
         config.gpu_options.allow_growth = True
         # Start running operations on the Graph.
@@ -88,7 +88,7 @@ def train():
         # Start the queue runners.
         tf.train.start_queue_runners(sess=sess)
 
-        summary_writer = tf.train.SummaryWriter(FLAGS.train_dir, sess.graph)
+        summary_writer = tf.summary.FileWriter(FLAGS.train_dir, sess.graph)
 
         for step in xrange(FLAGS.max_steps):
             start_time = time.time()
@@ -106,7 +106,7 @@ def train():
                 accuracy = tf.reduce_mean(tf.cast(correct_prediction,
                                                   tf.float32))
                 train_acc = sess.run(accuracy)
-                tf.scalar_summary('accuracy', accuracy)
+                tf.summary.scalar('accuracy', accuracy)
 
                 format_str = ('%s: step %d, loss = %.2f, accuracy = %.2f '
                               '(%.1f examples/sec; %.3f sec/batch)')

@@ -16,7 +16,7 @@ from tensorflow.python.saved_model import signature_def_utils
 from tensorflow.python.saved_model import tag_constants
 from tensorflow.python.saved_model import utils
 from tensorflow.python.util import compat
-from ip5wke
+import ip5wke
 
 tf.app.flags.DEFINE_string('checkpoint_dir', '/tmp/ip5wke_train',
                            """Directory where to read training checkpoints.""")
@@ -95,17 +95,17 @@ def export():
         #   /my-favorite-path/imagenet_train/model.ckpt-0,
         # extract global_step from it.
         global_step = ckpt.model_checkpoint_path.split('/')[-1].split('-')[-1]
-        print 'Successfully loaded model from %s at step=%s.' % (
+        print('Successfully loaded model from %s at step=%s.',
             ckpt.model_checkpoint_path, global_step)
       else:
-        print 'No checkpoint file found at %s' % FLAGS.checkpoint_dir
+        print('No checkpoint file found at %s', FLAGS.checkpoint_dir)
         return
 
       # Export inference model.
       output_path = os.path.join(
           compat.as_bytes(FLAGS.output_dir),
           compat.as_bytes(str(FLAGS.model_version)))
-      print 'Exporting trained model to', output_path
+      print('Exporting trained model to', output_path)
       builder = saved_model_builder.SavedModelBuilder(output_path)
 
       # Build the signature_def_map.
@@ -148,7 +148,7 @@ def export():
           legacy_init_op=legacy_init_op)
 
       builder.save()
-      print 'Successfully exported model to %s' % FLAGS.output_dir
+      print( 'Successfully exported model to %s', FLAGS.output_dir)
 
 
 def preprocess_image(image_buffer):
