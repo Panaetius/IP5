@@ -45,16 +45,16 @@ def get_white_noise_image(width, height):
     return Image.fromarray(random_grid.astype('uint8'), 'RGB')
 
 
-def create_rotated_images(dir):
+def create_rotated_images(dir, existing):
     for root, dirs, files in os.walk(dir):
         Parallel(n_jobs=8)(
-            delayed(RotateImage)(fn=fn, root=root) for fn in files)
+            delayed(RotateImage)(fn=fn, root=root, existing=existing) for fn in files)
 
 
-def RotateImage(fn, root):
-    if fn.endswith(".PNG"):
+def RotateImage(fn, root, existing):
+    fn = os.path.join(root, fn)
 
-        fn = os.path.join(root, fn)
+    if not '/'.join(fn.split('/')[-2:]) in existing and fn.endswith(".PNG"):
         size = (250, 250)
         image = Image.open(fn)
         # image = trim(image)
