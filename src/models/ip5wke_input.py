@@ -14,7 +14,7 @@ import tensorflow as tf
 IMAGE_SIZE = 224
 
 # Global constants describing the ip5wke data set.
-NUM_CLASSES = 20
+NUM_CLASSES = 39
 NUM_EXAMPLES_PER_EPOCH_FOR_TRAIN = 8000
 NUM_EXAMPLES_PER_EPOCH_FOR_EVAL = 10000
 
@@ -51,7 +51,7 @@ def read_ip5wke(filename_queue, data_dir):
     record_defaults = [[''], [0]]
     filename, label = tf.decode_csv(value, field_delim=' ',
                                     record_defaults=record_defaults)
-    file_contents = tf.read_file(tf.add(data_dir + '/../', filename))
+    file_contents = tf.read_file(filename)
     image = tf.image.decode_png(file_contents, channels=3)
 
     # The first bytes represent the label, which we convert from uint8->int32.

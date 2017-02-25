@@ -170,16 +170,16 @@ def inference(images):
         kernel = _variable_with_weight_decay('weights',
                                              shape=[5, 5, 3, 64],
                                              connections=5 * 5 * 3 + 64,
-                                             wd=WEIGHT_DECAY*75)
+                                             wd=WEIGHT_DECAY*50)
         conv = tf.nn.conv2d(images, kernel, [1, 1, 1, 1], padding='SAME')
         biases = _variable_on_cpu('biases', [64], tf.constant_initializer(0.0))
         bias = tf.nn.bias_add(conv, biases)
         conv1 = tf.nn.elu(bias, name=scope.name)
         _activation_summary(conv1)
         grid = put_kernels_on_grid(kernel, (8, 8))
-        tf.image_summary('conv1/features', grid, max_images=1)
+        tf.summary.image('conv1/features', grid, max_outputs=1)
         grid = put_activations_on_grid(conv, (8, 8))
-        tf.image_summary('conv1/activations', grid, max_images=1)
+        tf.summary.image('conv1/activations', grid, max_outputs=1)
 
     with tf.variable_scope('conv2') as scope:
         kernel = _variable_with_weight_decay('weights',
@@ -192,7 +192,7 @@ def inference(images):
         conv2 = tf.nn.elu(bias, name=scope.name)
         _activation_summary(conv2)
         grid = put_activations_on_grid(conv, (8, 8))
-        tf.image_summary('conv2/activations', grid, max_images=1)
+        tf.summary.image('conv2/activations', grid, max_outputs=1)
 
     pool2 = tf.nn.max_pool(conv2, ksize=[1, 2, 2, 1],
                            strides=[1, 2, 2, 1], padding='SAME', name='pool3')
@@ -210,7 +210,7 @@ def inference(images):
         conv3 = tf.nn.elu(bias, name=scope.name)
         _activation_summary(conv3)
         grid = put_activations_on_grid(conv, (8, 16))
-        tf.image_summary('conv3/activations', grid, max_images=1)
+        tf.summary.image('conv3/activations', grid, max_outputs=1)
 
     with tf.variable_scope('conv4') as scope:
         kernel = _variable_with_weight_decay('weights',
@@ -223,7 +223,7 @@ def inference(images):
         conv4 = tf.nn.elu(bias, name=scope.name)
         _activation_summary(conv4)
         grid = put_activations_on_grid(conv, (8, 16))
-        tf.image_summary('conv4/activations', grid, max_images=1)
+        tf.summary.image('conv4/activations', grid, max_outputs=1)
 
     pool4 = tf.nn.max_pool(conv4, ksize=[1, 2, 2, 1],
                            strides=[1, 2, 2, 1], padding='SAME', name='pool5')
@@ -241,7 +241,7 @@ def inference(images):
         conv5 = tf.nn.elu(bias, name=scope.name)
         _activation_summary(conv5)
         grid = put_activations_on_grid(conv, (16, 16))
-        tf.image_summary('conv5/activations', grid, max_images=1)
+        tf.summary.image('conv5/activations', grid, max_outputs=1)
 
     with tf.variable_scope('conv6') as scope:
         kernel = _variable_with_weight_decay('weights',
@@ -254,7 +254,7 @@ def inference(images):
         conv6 = tf.nn.elu(bias, name=scope.name)
         _activation_summary(conv6)
         grid = put_activations_on_grid(conv, (16, 16))
-        tf.image_summary('conv6/activations', grid, max_images=1)
+        tf.summary.image('conv6/activations', grid, max_outputs=1)
 
     with tf.variable_scope('conv7') as scope:
         kernel = _variable_with_weight_decay('weights',
@@ -267,7 +267,7 @@ def inference(images):
         conv7 = tf.nn.elu(bias, name=scope.name)
         _activation_summary(conv7)
         grid = put_activations_on_grid(conv, (16, 16))
-        tf.image_summary('conv7/activations', grid, max_images=1)
+        tf.summary.image('conv7/activations', grid, max_outputs=1)
 
     pool7 = tf.nn.max_pool(conv7, ksize=[1, 2, 2, 1],
                            strides=[1, 2, 2, 1], padding='SAME', name='pool5')
@@ -285,7 +285,7 @@ def inference(images):
         conv8 = tf.nn.elu(bias, name=scope.name)
         _activation_summary(conv8)
         grid = put_activations_on_grid(conv, (16, 32))
-        tf.image_summary('conv8/activations', grid, max_images=1)
+        tf.summary.image('conv8/activations', grid, max_outputs=1)
 
     with tf.variable_scope('conv9') as scope:
         kernel = _variable_with_weight_decay('weights',
@@ -298,7 +298,7 @@ def inference(images):
         conv9 = tf.nn.elu(bias, name=scope.name)
         _activation_summary(conv9)
         grid = put_activations_on_grid(conv, (16, 32))
-        tf.image_summary('conv9/activations', grid, max_images=1)
+        tf.summary.image('conv9/activations', grid, max_outputs=1)
 
     with tf.variable_scope('conv10') as scope:
         kernel = _variable_with_weight_decay('weights',
@@ -311,7 +311,7 @@ def inference(images):
         conv10 = tf.nn.elu(bias, name=scope.name)
         _activation_summary(conv10)
         grid = put_activations_on_grid(conv, (16, 32))
-        tf.image_summary('conv10/activations', grid, max_images=1)
+        tf.summary.image('conv10/activations', grid, max_outputs=1)
 
     pool10 = tf.nn.max_pool(conv10, ksize=[1, 2, 2, 1],
                             strides=[1, 2, 2, 1], padding='SAME', name='pool5')
@@ -329,7 +329,7 @@ def inference(images):
         conv11 = tf.nn.elu(bias, name=scope.name)
         _activation_summary(conv11)
         grid = put_activations_on_grid(conv, (16, 32))
-        tf.image_summary('conv11/activations', grid, max_images=1)
+        tf.summary.image('conv11/activations', grid, max_outputs=1)
 
     with tf.variable_scope('conv12') as scope:
         kernel = _variable_with_weight_decay('weights',
@@ -342,7 +342,7 @@ def inference(images):
         conv12 = tf.nn.elu(bias, name=scope.name)
         _activation_summary(conv12)
         grid = put_activations_on_grid(conv, (16, 32))
-        tf.image_summary('conv12/activations', grid, max_images=1)
+        tf.summary.image('conv12/activations', grid, max_outputs=1)
 
     with tf.variable_scope('conv13') as scope:
         kernel = _variable_with_weight_decay('weights',
@@ -355,7 +355,7 @@ def inference(images):
         conv13 = tf.nn.elu(bias, name=scope.name)
         _activation_summary(conv13)
         grid = put_activations_on_grid(conv, (16, 32))
-        tf.image_summary('conv13/activations', grid, max_images=1)
+        tf.summary.image('conv13/activations', grid, max_outputs=1)
 
     pool13 = tf.nn.max_pool(conv13, ksize=[1, 2, 2, 1],
                             strides=[1, 2, 2, 1], padding='SAME', name='pool5')
@@ -444,7 +444,7 @@ def loss(logits, labels):
 
     conf_matrix = conf_matrix.assign_add(curr_conf_matrix)
 
-    tf.image_summary('Confusion Matrix',
+    tf.summary.image('Confusion Matrix',
                      tf.reshape(tf.clip_by_norm(conf_matrix, 1, axes=[0]),
                                 [1, NUM_CLASSES, NUM_CLASSES, 1]))
 
@@ -579,11 +579,11 @@ def put_kernels_on_grid(kernel, grid, pad=1):
     x7 = tf.transpose(x6, (3, 0, 1, 2))
 
     # scale to [0, 1]
-    x_min = tf.reduce_min(x7)
-    x_max = tf.reduce_max(x7)
-    x8 = (x7 - x_min) / (x_max - x_min)
+    #x_min = tf.reduce_min(x7)
+    #x_max = tf.reduce_max(x7)
+    #x8 = (x7 - x_min) / (x_max - x_min)
 
-    return x8
+    return x7
 
 
 def put_activations_on_grid(activations, grid, pad=1):
@@ -628,8 +628,9 @@ def put_activations_on_grid(activations, grid, pad=1):
     x7 = tf.transpose(x6, (3, 0, 1, 2))
 
     # scale to [0, 1]
-    x_min = tf.reduce_min(x7)
-    x_max = tf.reduce_max(x7)
-    x8 = (x7 - x_min) / (x_max - x_min)
+    #x_min = tf.reduce_min(x7)
+    #x_max = tf.reduce_max(x7)
+    #x8 = (x7 - x_min) / (x_max - x_min)
 
-    return x8
+    #return x8
+    return x7
