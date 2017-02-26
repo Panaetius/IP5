@@ -50,6 +50,14 @@ class ResultText(Scatter):
 
 
 class TakePictureApp(App):
+    camsource = StringProperty(None)
+    pred1source = StringProperty(None)
+    pred1text = StringProperty('')
+    pred2source = StringProperty(None)
+    pred2text = StringProperty('')
+    pred3source = StringProperty(None)
+    pred3text = StringProperty('')
+
     def build(self):
         self.index = 0
         activity.bind(on_activity_result=self.on_activity_result)
@@ -91,23 +99,36 @@ class TakePictureApp(App):
         body = json.dumps({'file': encoded})
         headers = {'Content-type': 'application/json',
                    'Accept': 'application/json'}
+        print('python sending request')
         req = UrlRequest('http://178.83.156.224:8888/',
                                 on_success=self._inference_response,
                          on_error=self._inference_error,
                          on_failure=self._inference_error,
                          req_body=body,
                          req_headers=headers)
-        req.wait()
 
-        self.root.add_widget(Picture(source=fn, center=self.root.center))
+        print('python sent request')
+        self.camsource = fn
 
-    def add_result(self, text, *args):
-        self.root.add_widget(ResultText(text=text, center=self.root.center), 1)
+    def add_result(self, result, *args):
+        self.pred1source = 'classimages/' + result['classes'][0] + '.PNG'
+        self.pred2source = 'classimages/' + result['classes'][1] + '.PNG'
+        self.pred3source = 'classimages/' + result['classes'][2] + '.PNG'
+        self.pred1text = 'class: ' + result['classes'][0] + ', ' \
+                                                            'prob: {' \
+                                                            '0:.1f}%'.format(
+            result['scores'][0] * 100)
+        self.pred2text = 'class: ' + result['classes'][1] + ', prob: {0:.1f}%'.format(
+            result['scores'][1] * 100)
+        self.pred3text = 'class: ' + result['classes'][2] + ', prob: {0:.1f}%'.format(
+            result['scores'][2] * 100)
+        #self.root.canvas.ask_update()
 
     def _inference_response(self, req, result):
-        text = str(result['result'])
-        print('python ' + text)
-        Clock.schedule_once(partial(self.add_result, text), 0)
+        text = result['result']
+
+        print('python ' + str(text))
+        Clock.schedule_once(partial(self.add_result, text), 10)
 
     def _inference_error(self, req, error):
         print('python ' + str(error))

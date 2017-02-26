@@ -2,58 +2,68 @@
 #:import win kivy.core.window
 
 Widget:
-    canvas:
+    canvas.before:
         Color:
-            rgb: .85, .87, .88
+            rgba: 0, 0, 0, 1
         Rectangle:
+            # this implicitly binds the size of the
+            # rect to the size of the widget
             size: self.size
+            # self here still refers to the widget as Rectangle is only a
+            # graphics instruction and not a widget
+            pos: self.pos
 
-    Button:
-        text: 'Take a picture'
-        width: self.texture_size[0] + dp(40)
-        height: '48dp'
-        on_release: app.take_picture()
+    BoxLayout:
+        orientation: 'vertical'
+        size: root.size
 
-<Picture>:
-    on_size: self.center = win.Window.center
-    size: image.size
-    size_hint: None, None
+        Image:
+            id: camimage
+            size_hint: 1, 0.3
+            source: app.camsource
 
-    Image:
-        id: image
-        source: root.source
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint: 1, 0.2
 
-        # create initial image to be 400 pixels width
-        size: 400, 400
+            Image:
+                id: predimage1
+                size_hint: 0.3, 1
+                source: app.pred1source
+            Label:
+                id: predlabel1
+                size_hint: 0.7, 1
+                text: app.pred1text
 
-        # add shadow background
-        canvas.before:
-            Color:
-                rgba: 1, 1, 1, 1
-            BorderImage:
-                source: 'shadow32.png'
-                border: (36, 36, 36, 36)
-                size:(self.width + 72, self.height + 72)
-                pos: (-36, -36)
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint: 1, 0.2
 
-<ResultText>:
-    on_size: self.center = win.Window.center
-    size: resulttext.size
-    size_hint: None, None
+            Image:
+                id: predimage2
+                size_hint: 0.3, 1
+                source: app.pred2source
+            Label:
+                id: predlabel2
+                size_hint: 0.7, 1
+                text: app.pred2text
 
-    Label:
-        id:resulttext
-        size: 400, 400
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint: 1, 0.2
 
-        text: root.text
+            Image:
+                id: predimage3
+                size_hint: 0.3, 1
+                source: app.pred3source
+            Label:
+                id: predlabel3
+                size_hint: 0.7, 1
+                text: app.pred3text
 
-        canvas.before:
-            Color:
-                rgba: 1, 1, 1, 1
-            BorderImage:
-                source: 'shadow32.png'
-                border: (36, 36, 36, 36)
-                size:(self.width + 72, self.height + 72)
-                pos: (-36, -36)
-
-
+        Button:
+            size_hint: 1, 0.1
+            text: 'Take a picture'
+            width: self.texture_size[0] + dp(40)
+            height: '48dp'
+            on_release: app.take_picture()
