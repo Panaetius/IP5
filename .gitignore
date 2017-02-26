@@ -101,3 +101,4 @@ __pycache__
 /images/orig
 .idea
 /models/
+/src/android/.buildozer/
