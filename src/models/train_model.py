@@ -47,6 +47,9 @@ tf.app.flags.DEFINE_float('dropout_keep_probability', 0.5,
 tf.app.flags.DEFINE_integer('batch_size', 32,
                             """Number of images to process in a batch.""")
 
+tf.app.flags.DEFINE_integer('is_training', True,
+                            """Is training or not for batch norm""")
+
 
 def train():
     """Train ip5wke for a number of steps."""
@@ -100,7 +103,7 @@ def train():
 
             assert not np.isnan(loss_value), 'Model diverged with loss = NaN'
 
-            if step % 10 == 0:
+            if step % 25 == 0:
                 num_examples_per_step = FLAGS.batch_size
                 examples_per_sec = num_examples_per_step / duration
                 sec_per_batch = float(duration)
@@ -115,8 +118,6 @@ def train():
                               '(%.1f examples/sec; %.3f sec/batch)')
                 print(format_str % (datetime.now(), step, loss_value, train_acc,
                                     examples_per_sec, sec_per_batch))
-
-            if step % 25 == 0:
                 summary_str = sess.run(summary_op)
                 summary_writer.add_summary(summary_str, step)
 

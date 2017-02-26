@@ -170,8 +170,7 @@ def inference(images):
                                              connections=5 * 5 * 3 + 64,
                                              wd=WEIGHT_DECAY*50)
         conv = tf.nn.conv2d(images, kernel, [1, 1, 1, 1], padding='SAME')
-        biases = _variable_on_cpu('biases', [64], tf.constant_initializer(0.0))
-        bias = tf.nn.bias_add(conv, biases)
+        bias = batch_norm_wrapper(conv, shape=[0, 1, 2, 3])
         conv1 = tf.nn.elu(bias, name=scope.name)
         _activation_summary(conv1)
         grid = put_kernels_on_grid(kernel, (8, 8))
@@ -185,8 +184,7 @@ def inference(images):
                                              connections=3 * 3 * 64 + 64,
                                              wd=WEIGHT_DECAY)
         conv = tf.nn.conv2d(conv1, kernel, [1, 1, 1, 1], padding='SAME')
-        biases = _variable_on_cpu('biases', [64], tf.constant_initializer(0.0))
-        bias = tf.nn.bias_add(conv, biases)
+        bias = batch_norm_wrapper(conv, shape=[0, 1, 2, 3])
         conv2 = tf.nn.elu(bias, name=scope.name)
         _activation_summary(conv2)
         grid = put_activations_on_grid(conv, (8, 8))
@@ -203,8 +201,7 @@ def inference(images):
                                              connections=3 * 3 * 64 + 128,
                                              wd=WEIGHT_DECAY)
         conv = tf.nn.conv2d(pool2, kernel, [1, 1, 1, 1], padding='SAME')
-        biases = _variable_on_cpu('biases', [128], tf.constant_initializer(0.0))
-        bias = tf.nn.bias_add(conv, biases)
+        bias = batch_norm_wrapper(conv, shape=[0, 1, 2, 3])
         conv3 = tf.nn.elu(bias, name=scope.name)
         _activation_summary(conv3)
         grid = put_activations_on_grid(conv, (8, 16))
@@ -216,8 +213,7 @@ def inference(images):
                                              connections=3 * 3 * 128 + 128,
                                              wd=WEIGHT_DECAY)
         conv = tf.nn.conv2d(conv3, kernel, [1, 1, 1, 1], padding='SAME')
-        biases = _variable_on_cpu('biases', [128], tf.constant_initializer(0.0))
-        bias = tf.nn.bias_add(conv, biases)
+        bias = batch_norm_wrapper(conv, shape=[0, 1, 2, 3])
         conv4 = tf.nn.elu(bias, name=scope.name)
         _activation_summary(conv4)
         grid = put_activations_on_grid(conv, (8, 16))
@@ -234,8 +230,7 @@ def inference(images):
                                              connections=3 * 3 * 128 + 256,
                                              wd=WEIGHT_DECAY)
         conv = tf.nn.conv2d(pool4, kernel, [1, 1, 1, 1], padding='SAME')
-        biases = _variable_on_cpu('biases', [256], tf.constant_initializer(0.0))
-        bias = tf.nn.bias_add(conv, biases)
+        bias = batch_norm_wrapper(conv, shape=[0, 1, 2, 3])
         conv5 = tf.nn.elu(bias, name=scope.name)
         _activation_summary(conv5)
         grid = put_activations_on_grid(conv, (16, 16))
@@ -247,8 +242,7 @@ def inference(images):
                                              connections=3 * 3 * 256 + 256,
                                              wd=WEIGHT_DECAY)
         conv = tf.nn.conv2d(conv5, kernel, [1, 1, 1, 1], padding='SAME')
-        biases = _variable_on_cpu('biases', [256], tf.constant_initializer(0.0))
-        bias = tf.nn.bias_add(conv, biases)
+        bias = batch_norm_wrapper(conv, shape=[0, 1, 2, 3])
         conv6 = tf.nn.elu(bias, name=scope.name)
         _activation_summary(conv6)
         grid = put_activations_on_grid(conv, (16, 16))
@@ -260,8 +254,7 @@ def inference(images):
                                              connections=3 * 3 * 256 + 256,
                                              wd=WEIGHT_DECAY)
         conv = tf.nn.conv2d(conv6, kernel, [1, 1, 1, 1], padding='SAME')
-        biases = _variable_on_cpu('biases', [256], tf.constant_initializer(0.0))
-        bias = tf.nn.bias_add(conv, biases)
+        bias = batch_norm_wrapper(conv, shape=[0, 1, 2, 3])
         conv7 = tf.nn.elu(bias, name=scope.name)
         _activation_summary(conv7)
         grid = put_activations_on_grid(conv, (16, 16))
@@ -278,8 +271,7 @@ def inference(images):
                                              connections=3 * 3 * 256 + 512,
                                              wd=WEIGHT_DECAY)
         conv = tf.nn.conv2d(pool7, kernel, [1, 1, 1, 1], padding='SAME')
-        biases = _variable_on_cpu('biases', [512], tf.constant_initializer(0.0))
-        bias = tf.nn.bias_add(conv, biases)
+        bias = batch_norm_wrapper(conv, shape=[0, 1, 2, 3])
         conv8 = tf.nn.elu(bias, name=scope.name)
         _activation_summary(conv8)
         grid = put_activations_on_grid(conv, (16, 32))
@@ -291,8 +283,7 @@ def inference(images):
                                              connections=3 * 3 * 512 + 512,
                                              wd=WEIGHT_DECAY)
         conv = tf.nn.conv2d(conv8, kernel, [1, 1, 1, 1], padding='SAME')
-        biases = _variable_on_cpu('biases', [512], tf.constant_initializer(0.0))
-        bias = tf.nn.bias_add(conv, biases)
+        bias = batch_norm_wrapper(conv, shape=[0, 1, 2, 3])
         conv9 = tf.nn.elu(bias, name=scope.name)
         _activation_summary(conv9)
         grid = put_activations_on_grid(conv, (16, 32))
@@ -304,8 +295,7 @@ def inference(images):
                                              connections=3 * 3 * 512 + 512,
                                              wd=WEIGHT_DECAY)
         conv = tf.nn.conv2d(conv9, kernel, [1, 1, 1, 1], padding='SAME')
-        biases = _variable_on_cpu('biases', [512], tf.constant_initializer(0.0))
-        bias = tf.nn.bias_add(conv, biases)
+        bias = batch_norm_wrapper(conv, shape=[0, 1, 2, 3])
         conv10 = tf.nn.elu(bias, name=scope.name)
         _activation_summary(conv10)
         grid = put_activations_on_grid(conv, (16, 32))
@@ -322,8 +312,7 @@ def inference(images):
                                              connections=3 * 3 * 512 + 512,
                                              wd=WEIGHT_DECAY)
         conv = tf.nn.conv2d(pool10, kernel, [1, 1, 1, 1], padding='SAME')
-        biases = _variable_on_cpu('biases', [512], tf.constant_initializer(0.0))
-        bias = tf.nn.bias_add(conv, biases)
+        bias = batch_norm_wrapper(conv, shape=[0, 1, 2, 3])
         conv11 = tf.nn.elu(bias, name=scope.name)
         _activation_summary(conv11)
         grid = put_activations_on_grid(conv, (16, 32))
@@ -335,8 +324,7 @@ def inference(images):
                                              connections=3 * 3 * 512 + 512,
                                              wd=WEIGHT_DECAY)
         conv = tf.nn.conv2d(conv11, kernel, [1, 1, 1, 1], padding='SAME')
-        biases = _variable_on_cpu('biases', [512], tf.constant_initializer(0.0))
-        bias = tf.nn.bias_add(conv, biases)
+        bias = batch_norm_wrapper(conv, shape=[0, 1, 2, 3])
         conv12 = tf.nn.elu(bias, name=scope.name)
         _activation_summary(conv12)
         grid = put_activations_on_grid(conv, (16, 32))
@@ -348,8 +336,7 @@ def inference(images):
                                              connections=3 * 3 * 512 + 512,
                                              wd=WEIGHT_DECAY)
         conv = tf.nn.conv2d(conv12, kernel, [1, 1, 1, 1], padding='SAME')
-        biases = _variable_on_cpu('biases', [512], tf.constant_initializer(0.0))
-        bias = tf.nn.bias_add(conv, biases)
+        bias = batch_norm_wrapper(conv, shape=[0, 1, 2, 3])
         conv13 = tf.nn.elu(bias, name=scope.name)
         _activation_summary(conv13)
         grid = put_activations_on_grid(conv, (16, 32))
@@ -368,9 +355,8 @@ def inference(images):
                                               shape=[7 * 7 * 512, 4096],
                                               connections=7 * 7 * 512 + 4096,
                                               wd=WEIGHT_DECAY)
-        biases = _variable_on_cpu('biases', [4096],
-                                  tf.constant_initializer(0.0))
-        local3 = tf.nn.elu(tf.matmul(reshape, weights) + biases,
+        bias = batch_norm_wrapper(tf.matmul(reshape, weights))
+        local3 = tf.nn.elu(bias,
                            name=scope.name)
         local3 = tf.nn.dropout(local3, FLAGS.dropout_keep_probability)
         _activation_summary(local3)
@@ -380,8 +366,8 @@ def inference(images):
         weights = _variable_with_weight_decay('weights', shape=[4096, 100],
                                               connections=4096 + 100,
                                               wd=WEIGHT_DECAY)
-        biases = _variable_on_cpu('biases', [100], tf.constant_initializer(0.0))
-        local5 = tf.nn.elu(tf.matmul(local3, weights) + biases, name=scope.name)
+        bias = batch_norm_wrapper(tf.matmul(local3, weights))
+        local5 = tf.nn.elu(bias, name=scope.name)
         local5 = tf.nn.dropout(local5, FLAGS.dropout_keep_probability)
         _activation_summary(local5)
 
@@ -390,10 +376,8 @@ def inference(images):
         weights = _variable_with_weight_decay('weights', [100, NUM_CLASSES],
                                               connections=100 + NUM_CLASSES,
                                               wd=0.0)
-        biases = _variable_on_cpu('biases', [NUM_CLASSES],
-                                  tf.constant_initializer(0.0))
-        softmax_linear = tf.add(tf.matmul(local5, weights), biases,
-                                name=scope.name)
+        softmax_linear = batch_norm_wrapper(tf.matmul(local5, weights))
+
         _activation_summary(softmax_linear)
 
     return softmax_linear
@@ -527,6 +511,27 @@ def train(total_loss, global_step):
 
     return train_op
 
+def batch_norm_wrapper(inputs, decay=0.999, shape=[0]):
+    epsilon = 1e-3
+    scale = tf.Variable(tf.ones([inputs.get_shape()[-1]]))
+    beta = tf.Variable(tf.zeros([inputs.get_shape()[-1]]))
+    pop_mean = tf.Variable(tf.zeros([inputs.get_shape()[-1]]), trainable=False)
+    pop_var = tf.Variable(tf.ones([inputs.get_shape()[-1]]), trainable=False)
+
+    if FLAGS.is_training:
+        batch_mean, batch_var = tf.nn.moments(inputs, shape, name="moments")
+        train_mean = tf.assign(pop_mean,
+                               pop_mean * decay + batch_mean * (1 - decay))
+        train_var = tf.assign(pop_var,
+                              pop_var * decay + batch_var * (1 - decay))
+        with tf.control_dependencies([train_mean, train_var]):
+            return tf.nn.batch_normalization(inputs,
+                                             batch_mean, batch_var, beta, scale,
+                                             epsilon, name="batch_norm")
+    else:
+        return tf.nn.batch_normalization(inputs,
+                                         pop_mean, pop_var, beta, scale,
+                                         epsilon, name="batch_norm")
 
 def put_kernels_on_grid(kernel, grid, pad=1):
     """Visualize conv. features as an image (mostly for the 1st layer).
