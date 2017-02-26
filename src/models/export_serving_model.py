@@ -26,28 +26,21 @@ tf.app.flags.DEFINE_integer('model_version', 1,
                             """Version number of the model.""")
 tf.app.flags.DEFINE_integer('image_size', 224,
                             """Needs to provide same value as in training.""")
+
+tf.app.flags.DEFINE_float('dropout_keep_probability', 1.0,
+                          """How many nodes to keep during dropout""")
+
+tf.app.flags.DEFINE_integer('batch_size', 1,
+                            """Number of images to process in a batch.""")
 FLAGS = tf.app.flags.FLAGS
 
 NUM_CLASSES = 39
 NUM_TOP_CLASSES = 3
 
 WORKING_DIR = os.path.dirname(os.path.realpath(__file__))
-SYNSET_FILE = os.path.join(WORKING_DIR, 'imagenet_lsvrc_2015_synsets.txt')
-METADATA_FILE = os.path.join(WORKING_DIR, 'imagenet_metadata.txt')
 
 
 def export():
-  # Create index->synset mapping
-  synsets = []
-  with open(SYNSET_FILE) as f:
-    synsets = f.read().splitlines()
-  # Create synset->metadata mapping
-  texts = {}
-  with open(METADATA_FILE) as f:
-    for line in f.read().splitlines():
-      parts = line.split('\t')
-      assert len(parts) == 2
-      texts[parts[0]] = parts[1]
 
   with tf.Graph().as_default():
     # Build inference model.
@@ -64,26 +57,27 @@ def export():
     images = tf.map_fn(preprocess_image, jpegs, dtype=tf.float32)
 
     # Run inference.
-    logits, _ = ip5wke_model.inference(images, NUM_CLASSES + 1)
+    logits = ip5wke.inference(images)
+    logits = tf.nn.softmax(logits)
 
     # Transform output to topK result.
     values, indices = tf.nn.top_k(logits, NUM_TOP_CLASSES)
 
     # Create a constant string Tensor where the i'th element is
     # the human readable class description for the i'th index.
-    # Note that the 0th index is an unused background class
-    # (see ip5wke model definition code).
-    class_descriptions = ['unused background']
-    for s in synsets:
-      class_descriptions.append(texts[s])
+    class_descriptions = []
+    for s in range(NUM_CLASSES):
+      class_descriptions.append(str(s))
     class_tensor = tf.constant(class_descriptions)
 
-    classes = tf.contrib.lookup.index_to_string(
-        tf.to_int64(indices), mapping=class_tensor)
+    table = tf.contrib.lookup.index_to_string_table_from_tensor(
+        class_tensor, default_value="UNKNOWN")
+
+    classes = table.lookup(tf.cast(indices, dtype=tf.int64))
 
     # Restore variables from training checkpoint.
     variable_averages = tf.train.ExponentialMovingAverage(
-        ip5wke_model.MOVING_AVERAGE_DECAY)
+        ip5wke.MOVING_AVERAGE_DECAY)
     variables_to_restore = variable_averages.variables_to_restore()
     saver = tf.train.Saver(variables_to_restore)
     with tf.Session() as sess:
@@ -136,7 +130,7 @@ def export():
           method_name=signature_constants.PREDICT_METHOD_NAME)
 
       legacy_init_op = tf.group(
-          tf.initialize_all_tables(), name='legacy_init_op')
+          tf.tables_initializer(), name='legacy_init_op')
       builder.add_meta_graph_and_variables(
           sess, [tag_constants.SERVING],
           signature_def_map={
