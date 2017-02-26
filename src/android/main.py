@@ -99,12 +99,15 @@ class TakePictureApp(App):
                          req_headers=headers)
         req.wait()
 
-        #self.root.add_widget(Picture(source=fn, center=self.root.center))
+        self.root.add_widget(Picture(source=fn, center=self.root.center))
+
+    def add_result(self, text, *args):
+        self.root.add_widget(ResultText(text=text, center=self.root.center), 1)
 
     def _inference_response(self, req, result):
         text = str(result['result'])
         print('python ' + text)
-        self.root.add_widget(ResultText(text=text, center=self.root.center), 1)
+        Clock.schedule_once(partial(self.add_result, text), 0)
 
     def _inference_error(self, req, error):
         print('python ' + str(error))
