@@ -162,15 +162,11 @@ def preprocess_image(image_buffer):
   image = tf.image.convert_image_dtype(image, dtype=tf.float32)
   # Crop the central region of the image with an area containing 87.5% of
   # the original image.
-  image = tf.image.central_crop(image, central_fraction=0.875)
-  # Resize the image to the original height and width.
-  image = tf.expand_dims(image, 0)
-  image = tf.image.resize_bilinear(
-      image, [FLAGS.image_size, FLAGS.image_size], align_corners=False)
-  image = tf.squeeze(image, [0])
-  # Finally, rescale to [-1,1] instead of [0, 1)
-  image = tf.subtract(image, 0.5)
-  image = tf.multiply(image, 2.0)
+  image = tf.image.resize_image_with_crop_or_pad(image,
+                                                 FLAGS.image_size, FLAGS.image_size)
+
+  image = tf.image.per_image_standardization(image)
+
   return image
 
 

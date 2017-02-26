@@ -50,6 +50,11 @@ class Inference:
 
     def _POST(self):
         file_data = base64.b64decode(bottle.request.json['file'])
+
+        with open('current.jpg', 'wb') as f:
+            f.write(file_data)
+            f.close()
+
         self.request.inputs['images'].CopyFrom(
             tf.contrib.util.make_tensor_proto(file_data, shape=[1]))
 

@@ -84,6 +84,8 @@ class TakePictureApp(App):
 
     def add_picture(self, fn, *args):
         im = Image.open(fn)
+
+        #scale image to reduce network traffic
         width, height = im.size
 
         if width > height:
@@ -128,7 +130,7 @@ class TakePictureApp(App):
         text = result['result']
 
         print('python ' + str(text))
-        Clock.schedule_once(partial(self.add_result, text), 10)
+        Clock.schedule_once(partial(self.add_result, text), 0)
 
     def _inference_error(self, req, error):
         print('python ' + str(error))
