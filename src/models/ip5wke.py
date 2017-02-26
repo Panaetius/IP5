@@ -25,8 +25,6 @@ import ip5wke_input
 FLAGS = tf.app.flags.FLAGS
 
 # Basic model parameters.
-tf.app.flags.DEFINE_integer('batch_size', 19,
-                            """Number of images to process in a batch.""")
 tf.app.flags.DEFINE_string('data_dir', os.path.join(os.path.dirname(__file__),
                                                     os.pardir, os.pardir,
                                                     'data', 'processed',
@@ -366,9 +364,9 @@ def inference(images):
     with tf.variable_scope('local3') as scope:
         # Move everything into depth so we can perform a single matrix multiply.
         reshape = tf.reshape(pool13, [FLAGS.batch_size, -1])
-        dim = reshape.get_shape()[1].value
-        weights = _variable_with_weight_decay('weights', shape=[dim, 4096],
-                                              connections=3 * 3 * 512 + 4096,
+        weights = _variable_with_weight_decay('weights',
+                                              shape=[7 * 7 * 512, 4096],
+                                              connections=7 * 7 * 512 + 4096,
                                               wd=WEIGHT_DECAY)
         biases = _variable_on_cpu('biases', [4096],
                                   tf.constant_initializer(0.0))
@@ -377,24 +375,13 @@ def inference(images):
         local3 = tf.nn.dropout(local3, FLAGS.dropout_keep_probability)
         _activation_summary(local3)
 
-    # local4
-    with tf.variable_scope('local4') as scope:
-        weights = _variable_with_weight_decay('weights', shape=[4096, 4096],
-                                              connections=4096 + 4096,
-                                              wd=WEIGHT_DECAY)
-        biases = _variable_on_cpu('biases', [4096],
-                                  tf.constant_initializer(0.0))
-        local4 = tf.nn.elu(tf.matmul(local3, weights) + biases, name=scope.name)
-        local4 = tf.nn.dropout(local4, FLAGS.dropout_keep_probability)
-        _activation_summary(local4)
-
         # local5
     with tf.variable_scope('local5') as scope:
         weights = _variable_with_weight_decay('weights', shape=[4096, 100],
                                               connections=4096 + 100,
                                               wd=WEIGHT_DECAY)
         biases = _variable_on_cpu('biases', [100], tf.constant_initializer(0.0))
-        local5 = tf.nn.elu(tf.matmul(local4, weights) + biases, name=scope.name)
+        local5 = tf.nn.elu(tf.matmul(local3, weights) + biases, name=scope.name)
         local5 = tf.nn.dropout(local5, FLAGS.dropout_keep_probability)
         _activation_summary(local5)
 

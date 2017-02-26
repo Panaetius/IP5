@@ -45,6 +45,8 @@ tf.app.flags.DEFINE_boolean('run_once', False,
 
 tf.app.flags.DEFINE_float('dropout_keep_probability', 1.0,
                           "How many nodes to keep during dropout")
+tf.app.flags.DEFINE_integer('batch_size', 32,
+                            """Number of images to process in a batch.""")
 
 
 def eval_once(saver, summary_writer, top_k_op, top_k_op2, conf_matrix_op,

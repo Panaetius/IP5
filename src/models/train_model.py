@@ -44,6 +44,9 @@ tf.app.flags.DEFINE_boolean('log_device_placement', False,
 tf.app.flags.DEFINE_float('dropout_keep_probability', 0.5,
                           """How many nodes to keep during dropout""")
 
+tf.app.flags.DEFINE_integer('batch_size', 32,
+                            """Number of images to process in a batch.""")
+
 
 def train():
     """Train ip5wke for a number of steps."""
