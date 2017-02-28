@@ -14,7 +14,7 @@ import tensorflow as tf
 IMAGE_SIZE = 224
 
 # Global constants describing the ip5wke data set.
-NUM_CLASSES = 39
+NUM_CLASSES = 49
 NUM_EXAMPLES_PER_EPOCH_FOR_TRAIN = 8000
 NUM_EXAMPLES_PER_EPOCH_FOR_EVAL = 10000
 

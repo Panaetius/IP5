@@ -37,7 +37,7 @@ tf.app.flags.DEFINE_integer('is_training', False,
 
 FLAGS = tf.app.flags.FLAGS
 
-NUM_CLASSES = 39
+NUM_CLASSES = 49
 NUM_TOP_CLASSES = 3
 
 WORKING_DIR = os.path.dirname(os.path.realpath(__file__))
