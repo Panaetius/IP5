@@ -1,3 +1,3 @@
-title=TakePicture
-author=Mathieu Virbel
+title=ip5wke
+author=Ralf Grubenmann
 orientation=landscape

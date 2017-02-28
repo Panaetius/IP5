@@ -102,10 +102,10 @@ class TakePictureApp(App):
         headers = {'Content-type': 'application/json',
                    'Accept': 'application/json'}
         print('python sending request')
-        req = UrlRequest('http://178.83.156.224:8888/',
+        req = UrlRequest('http://ip5wke.hopto.org:8888/',
                                 on_success=self._inference_response,
                          on_error=self._inference_error,
-                         on_failure=self._inference_error,
+                         on_failure=self._inference_failure,
                          req_body=body,
                          req_headers=headers)
 
@@ -133,7 +133,16 @@ class TakePictureApp(App):
         Clock.schedule_once(partial(self.add_result, text), 0)
 
     def _inference_error(self, req, error):
-        print('python ' + str(error))
+        Clock.schedule_once(partial(self.show_error, 'Request Failure'), 0)
+
+    def _inference_failure(self, req, error):
+        Clock.schedule_once(partial(self.show_error, 'Request Failure'), 0)
+
+    def show_error(self, text, *args):
+        popup = Popup(title='Error',
+            content=Label(text=text),
+            size_hint=(None, None), size=(400, 400))
+        popup.open()
 
     def on_pause(self):
         return True
