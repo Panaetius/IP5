@@ -28,6 +28,8 @@ from functools import partial
 from kivy.clock import Clock
 from kivy.uix.scatter import Scatter
 from kivy.uix.scrollview import ScrollView
+from kivy.uix.popup import Popup
+from kivy.uix.label import Label
 from kivy.properties import StringProperty
 from kivy.network.urlrequest import UrlRequest
 
@@ -102,11 +104,12 @@ class TakePictureApp(App):
         headers = {'Content-type': 'application/json',
                    'Accept': 'application/json'}
         print('python sending request')
+
         req = UrlRequest('http://ip5wke.hopto.org:8888/',
-                                on_success=self._inference_response,
-                         on_error=self._inference_error,
-                         on_failure=self._inference_failure,
-                         req_body=body,
+                                    on_success=self._inference_response,
+                             on_error=self._inference_error,
+                             on_failure=self._inference_failure,
+                             req_body=body,
                          req_headers=headers)
 
         print('python sent request')
@@ -146,6 +149,10 @@ class TakePictureApp(App):
 
     def on_pause(self):
         return True
+
+    def on_resume(self):
+        # after close the camera, we need to resume our app.
+        print('python resumed')
 
 
 TakePictureApp().run()

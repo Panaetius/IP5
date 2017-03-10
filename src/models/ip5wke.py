@@ -43,8 +43,8 @@ NUM_EXAMPLES_PER_EPOCH_FOR_EVAL = ip5wke_input.NUM_EXAMPLES_PER_EPOCH_FOR_EVAL
 MOVING_AVERAGE_DECAY = 0.9999  # The decay to use for the moving average.
 NUM_EPOCHS_PER_DECAY = 20  # Epochs after which learning rate decays.
 LEARNING_RATE_DECAY_FACTOR = 0.5  # Learning rate decay factor.
-INITIAL_LEARNING_RATE = 0.0011  # Initial learning rate. 0.00007
-WEIGHT_DECAY = 0.0031
+INITIAL_LEARNING_RATE = 0.000046 # Initial learning rate. 0.00007
+WEIGHT_DECAY = 0.0000049
 ADAM_EPSILON = 0.0001
 
 # If a model is trained with multiple GPUs, prefix all Op names with tower_name
