@@ -1,7 +1,7 @@
 ip5wke
 ==============================
 
-Image Recognition of Machine Parts
+Image Recognition of Machine Parts, based on VGGNet 16 using Tensorflow
 
 Project Organization
 ------------
