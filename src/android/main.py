@@ -65,6 +65,7 @@ class TakePictureApp(App):
         activity.bind(on_activity_result=self.on_activity_result)
 
     def get_filename(self):
+        # Get a local storage path for a camera image
         while True:
             self.index += 1
             fn = (Environment.getExternalStorageDirectory().getPath() +
@@ -73,6 +74,7 @@ class TakePictureApp(App):
                 return fn
 
     def take_picture(self):
+        # starts the camera to take a picture
         intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
         self.last_fn = self.get_filename()
         self.uri = Uri.parse('file://' + self.last_fn)
@@ -81,10 +83,12 @@ class TakePictureApp(App):
         mActivity.startActivityForResult(intent, 0x123)
 
     def on_activity_result(self, requestCode, resultCode, intent):
+        # called when the camera is done
         if requestCode == 0x123:
             Clock.schedule_once(partial(self.add_picture, self.last_fn), 0)
 
     def add_picture(self, fn, *args):
+        # opens a camera image, scales it and sends it to the server
         im = Image.open(fn)
 
         #scale image to reduce network traffic
@@ -116,6 +120,7 @@ class TakePictureApp(App):
         self.camsource = fn
 
     def add_result(self, result, *args):
+        # Gets called with prediction results from the server and displays them
         self.pred1source = 'classimages/' + result['classes'][0] + '.PNG'
         self.pred2source = 'classimages/' + result['classes'][1] + '.PNG'
         self.pred3source = 'classimages/' + result['classes'][2] + '.PNG'
@@ -130,28 +135,33 @@ class TakePictureApp(App):
         #self.root.canvas.ask_update()
 
     def _inference_response(self, req, result):
+        # called on successful REST request
         text = result['result']
 
         print('python ' + str(text))
         Clock.schedule_once(partial(self.add_result, text), 0)
 
     def _inference_error(self, req, error):
+        # called when an error happens in the REST request
         Clock.schedule_once(partial(self.show_error, 'Request Failure'), 0)
 
     def _inference_failure(self, req, error):
+        # called when an error happens in the REST request
         Clock.schedule_once(partial(self.show_error, 'Request Failure'), 0)
 
     def show_error(self, text, *args):
+        # shows an error message to the user
         popup = Popup(title='Error',
             content=Label(text=text),
             size_hint=(None, None), size=(400, 400))
         popup.open()
 
     def on_pause(self):
+        # needed because the android camera pauses the app
         return True
 
     def on_resume(self):
-        # after close the camera, we need to resume our app.
+        # after closing the camera, we need to resume our app.
         print('python resumed')
 
 
