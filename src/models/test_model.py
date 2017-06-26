@@ -1,19 +1,8 @@
 """Evaluation for ip5wke.
 
 Accuracy:
-ip5wke_train.py achieves 83.0% accuracy after 100K steps (256 epochs
+ip5wke_train.py achieves 94% accuracy after 100K steps (256 epochs
 of data) as judged by ip5wke_eval.py.
-
-Speed:
-On a single Tesla K40, ip5wke_train.py processes a single batch of 128 images
-in 0.25-0.35 sec (i.e. 350 - 600 images /sec). The model reaches ~86%
-accuracy after 100K steps in 8 hours of training time.
-
-Usage:
-Please see the tutorial and website for how to download the ip5wke
-data set, compile the program and train the model.
-
-http://tensorflow.org/tutorials/deep_cnn/
 """
 from __future__ import absolute_import
 from __future__ import division
@@ -87,6 +76,8 @@ def eval_once(saver, summary_writer, top_k_op, top_k_op2, conf_matrix_op,
                                                  start=True))
 
             num_iter = int(math.ceil(FLAGS.num_examples / FLAGS.batch_size))
+            
+            # calculate accuracy, precision, recall and f1 score
             true_count = 0  # Counts the number of correct predictions.
             true_count2 = 0
             total_sample_count = num_iter * FLAGS.batch_size

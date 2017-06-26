@@ -13,6 +13,7 @@ from joblib import Parallel, delayed
 
 
 def average_image_color(i):
+    # Calculates the average color of an image
     h = i.histogram()
 
     # split into red, green, blue
@@ -30,6 +31,7 @@ def average_image_color(i):
 
 
 def trim(im):
+    #trims an image to a bounding box
     bg = Image.new(im.mode, im.size, im.getpixel((0, 0)))
     diff = ImageChops.difference(im, bg)
     diff = ImageChops.add(diff, diff, 2.0, -100)
@@ -39,6 +41,7 @@ def trim(im):
 
 
 def get_white_noise_image(width, height):
+    # generates a random noise image
     # pil_map = Image.new("RGBA", (width, height), 255)
     random_grid = np.random.randint(0, high=255, size=(width, height, 3))
     # pil_map.putdata(random_grid)
@@ -46,12 +49,14 @@ def get_white_noise_image(width, height):
 
 
 def create_rotated_images(dir, existing):
+    # creates rotations of images in a folder with parallelization
     for root, dirs, files in os.walk(dir):
         Parallel(n_jobs=8)(
             delayed(RotateImage)(fn=fn, root=root, existing=existing) for fn in files)
 
 
 def RotateImage(fn, root, existing):
+    # creates 24 copies of an image by rotating is 15 degrees each time
     fn = os.path.join(root, fn)
 
     if not '/'.join(fn.split('/')[-2:]) in existing and fn.endswith(".PNG"):

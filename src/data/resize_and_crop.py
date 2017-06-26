@@ -6,16 +6,18 @@ from joblib import Parallel, delayed
 
 
 def resize_and_crop(dir, target_dir, existing):
+    # resizes and crops all images in a target directory with parallelization
     for root, dirs, files in os.walk(dir):
         Parallel(n_jobs=8)(delayed(CopyAndResizeImage)(fn=fn,
                                                        dir=dir,
                                                        root=root,
                                                        target_dir=target_dir,
-													   existing=existing
+                                                       existing=existing
                                                        ) for fn in files)
 
 
 def CopyAndResizeImage(dir, fn, root, target_dir, existing):
+    # resizes and crops all images in a directory to 250 x 250px
     fn = os.path.join(root, fn)
 
     if not '/'.join(fn.split('/')[-2:]).replace('.JPG', '.PNG') in existing \

@@ -49,6 +49,7 @@ class Inference:
         self._app.run(host=self._host, port=self._port)
 
     def _POST(self):
+        # REST endpoint for prediction, takes base64 encoded jpg and returns the top 3 predicted classes with class probabilities
         file_data = base64.b64decode(bottle.request.json['file'])
 
         with open('current.jpg', 'wb') as f:
@@ -71,5 +72,6 @@ class Inference:
 
 
 if __name__ == '__main__':
+    # start server
     server = Inference(host='0.0.0.0', port=8888)
     server.start()

@@ -1,21 +1,9 @@
 """A binary to train ip5wke using a single GPU.
 
 Accuracy:
-ip5wke_train.py achieves ~86% accuracy after 100K steps (256 epochs of
+ip5wke_train.py achieves ~94% accuracy after 100K steps (256 epochs of
 data) as judged by ip5wke_eval.py.
 
-Speed: With batch_size 128.
-
-System        | Step Time (sec/batch)  |     Accuracy
-------------------------------------------------------------------
-1 Tesla K20m  | 0.35-0.60              | ~86% at 60K steps  (5 hours)
-1 Tesla K40m  | 0.25-0.35              | ~86% at 100K steps (4 hours)
-
-Usage:
-Please see the tutorial and website for how to download the ip5wke
-data set, compile the program and train the model.
-
-http://tensorflow.org/tutorials/deep_cnn/
 """
 from __future__ import absolute_import
 from __future__ import division
@@ -104,6 +92,7 @@ def train():
             assert not np.isnan(loss_value), 'Model diverged with loss = NaN'
 
             if step % 25 == 0:
+                # save summaries and print current loss/accuracy
                 num_examples_per_step = FLAGS.batch_size
                 examples_per_sec = num_examples_per_step / duration
                 sec_per_batch = float(duration)

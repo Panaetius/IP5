@@ -7,6 +7,8 @@ import resize_and_crop
 
 
 def create_import_list(top):
+    # creates a directory file containing image filenames and class labels, 1 file per line
+    
     entries = []
     for root, dirs, files in os.walk(top):
         for fn in files:
@@ -23,6 +25,7 @@ def create_import_list(top):
 
 
 def make_data(source, dest):
+    # resizes and crops images, then splits images into train, validation and test datasets
     print('loading existing file index to prevent recreating files')
 
     existing = []

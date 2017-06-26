@@ -9,3 +9,5 @@ numpy
 pillow
 scikit-image
 joblib
+matplotlib
+scipy

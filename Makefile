@@ -19,7 +19,7 @@ requirements: test_environment
 
 ## Make Dataset
 data: requirements
-	$(PYTHON_INTERPRETER) src/data/make_dataset.py
+	$(PYTHON_INTERPRETER) src/data/make_dataset.py ./data/raw/ ./data/processed
 
 ## Delete all compiled Python files
 clean:
@@ -29,13 +29,6 @@ clean:
 lint:
 	flake8 --exclude=lib/,bin/,docs/conf.py .
 
-## Upload Data to S3
-sync_data_to_s3:
-	aws s3 sync data/ s3://$(BUCKET)/data/
-
-## Download Data from S3
-sync_data_from_s3:
-	aws s3 sync s3://$(BUCKET)/data/ data/
 
 ## Set up python interpreter environment
 create_environment:
